@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schul-Fehlzeiten Dashboard</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: #eff6ff;
+      --critical: #dc2626;
+      --critical-bg: #fef2f2;
+      --critical-border: #fecaca;
+      --warning: #d97706;
+      --warning-bg: #fffbeb;
+      --warning-border: #fde68a;
+      --normal: #16a34a;
+      --normal-bg: #f0fdf4;
+      --normal-border: #bbf7d0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      line-height: 1.5;
+      font-size: 14px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+    .header-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: white;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .brand h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+    .brand p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      background: white;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-emerald {
+      background: var(--normal-bg);
+      color: #15803d;
+      border-color: var(--normal-border);
+    }
+    .btn-emerald:hover { background: #dcfce7; }
+    .btn-secondary {
+      color: #334155;
+      border-color: #cbd5e1;
+    }
+    .btn-secondary:hover { background: #f1f5f9; }
+    .btn-dark {
+      background: #1e293b;
+      color: white;
+    }
+    .btn-dark:hover { background: #0f172a; }
+
+    /* Layout Container */
+    main {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* File Pill */
+    .file-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #475569;
+      border: 1px solid var(--border);
+    }
+
+    /* Threshold Drawer */
+    #threshold-panel {
+      display: none;
+      background: #0f172a;
+      color: white;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    .threshold-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .threshold-header h3 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94a3b8;
+    }
+    .threshold-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .threshold-item label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+    .threshold-item input {
+      width: 100%;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .kpi-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.2;
+      margin: 2px 0;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .kpi-critical {
+      background: var(--critical-bg);
+      border-color: var(--critical-border);
+      cursor: pointer;
+    }
+    .kpi-warning {
+      background: var(--warning-bg);
+      border-color: var(--warning-border);
+      cursor: pointer;
+    }
+
+    /* Classes Section */
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .section-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .classes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .class-card {
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .class-card:hover {
+      border-color: #94a3b8;
+      background: #f1f5f9;
+    }
+    .class-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+    }
+    .class-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .class-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .score-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      border: 1px solid transparent;
+    }
+    .score-critical { background: var(--critical-bg); color: var(--critical); border-color: var(--critical-border); }
+    .score-warning { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-border); }
+    .score-normal { background: var(--normal-bg); color: var(--normal); border-color: var(--normal-border); }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      overflow: hidden;
+      display: flex;
+      margin: 8px 0;
+    }
+    .bar-total { background: #3b82f6; height: 100%; }
+    .bar-unexcused { background: #f59e0b; height: 100%; margin-left: -2px; }
+
+    /* Student Table Controls */
+    .table-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .filters-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+    .search-input {
+      padding: 7px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      background: #f8fafc;
+      width: 220px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--primary); background: white; }
+    .select-input {
+      padding: 7px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      background: #f8fafc;
+      outline: none;
+      font-weight: 500;
+    }
+    .status-tabs {
+      display: inline-flex;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      padding: 2px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #475569;
+      font-weight: 600;
+      transition: all 0.1s;
+    }
+    .tab-btn.active {
+      background: white;
+      color: var(--text-main);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .tab-btn-critical.active { background: var(--critical); color: white; }
+    .tab-btn-warning.active { background: var(--warning); color: white; }
+    .tab-btn-normal.active { background: var(--normal); color: white; }
+
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    th {
+      background: #f8fafc;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+    }
+    th:hover { color: var(--text-main); }
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    tr.clickable-row {
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    tr.clickable-row:hover {
+      background: #f8fafc;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+    .badge-critical { background: var(--critical-bg); color: var(--critical); border-color: var(--critical-border); }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); border-color: var(--warning-border); }
+    .badge-normal { background: var(--normal-bg); color: var(--normal); border-color: var(--normal-border); }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 16px;
+    }
+    .modal-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 520px;
+      overflow: hidden;
+      animation: modalIn 0.15s ease-out;
+    }
+    @keyframes modalIn {
+      from { transform: scale(0.96); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .modal-footer {
+      padding: 12px 20px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* Drag & Drop Zone */
+    .dropzone {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 32px 16px;
+      text-align: center;
+      cursor: pointer;
+      background: #f8fafc;
+      transition: all 0.15s;
+    }
+    .dropzone.dragover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <!-- School Icon SVG -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4"></path>
+            <path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2"></path>
+            <path d="M18 5v17"></path>
+            <path d="m4 6 8-4 8 4"></path>
+            <path d="M6 5v17"></path>
+            <circle cx="12" cy="9" r="2"></circle>
+          </svg>
+        </div>
+        <div>
+          <h1>Schul-Fehlzeiten Dashboard</h1>
+          <p>Schulverwaltung & Früherkennung auffälliger Fehlzeiten</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div id="file-meta" class="file-badge" style="display: none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+            <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+          </svg>
+          <span id="file-name-text">sample.csv</span> • <span id="file-count-text">0 Schüler</span>
+        </div>
+
+        <button id="toggle-threshold-btn" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" x2="20" y1="21" y2="21"></line>
+            <line x1="4" x2="20" y1="14" y2="14"></line>
+            <line x1="4" x2="20" y1="7" y2="7"></line>
+            <circle cx="8" cy="7" r="2"></circle>
+            <circle cx="16" cy="14" r="2"></circle>
+            <circle cx="12" cy="21" r="2"></circle>
+          </svg>
+          Grenzwerte
+        </button>
+
+        <button id="load-demo-btn" class="btn btn-emerald">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+            <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path>
+          </svg>
+          Demo-Daten
+        </button>
+
+        <button id="open-upload-btn" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" x2="12" y1="3" y2="15"></line>
+          </svg>
+          CSV Importieren
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main>
+    
+    <!-- Threshold Panel -->
+    <div id="threshold-panel">
+      <div class="threshold-header">
+        <h3>Schwellenwerte für Auffälligkeiten (Schulverwaltung)</h3>
+        <div style="display:flex; gap:8px;">
+          <button id="reset-thresholds-btn" class="btn btn-secondary" style="padding:4px 8px; font-size:11px;">Standard</button>
+          <button id="apply-thresholds-btn" class="btn btn-primary" style="padding:4px 10px; font-size:11px;">Neu berechnen</button>
+        </div>
+      </div>
+      <div class="threshold-grid">
+        <div class="threshold-item">
+          <label>🔴 Kritisch unentschuldigt (Std)</label>
+          <input type="number" id="th-unex-crit" min="1" max="100" value="10">
+        </div>
+        <div class="threshold-item">
+          <label>🟡 Auffällig unentschuldigt (Std)</label>
+          <input type="number" id="th-unex-warn" min="1" max="100" value="4">
+        </div>
+        <div class="threshold-item">
+          <label>🔴 Kritisch Gesamtstunden</label>
+          <input type="number" id="th-tot-crit" min="1" max="200" value="35">
+        </div>
+        <div class="threshold-item">
+          <label>🟡 Auffällig Gesamtstunden</label>
+          <input type="number" id="th-tot-warn" min="1" max="200" value="20">
+        </div>
+        <div class="threshold-item">
+          <label>🔴 Quote unentschuldigt (%)</label>
+          <input type="number" id="th-rate-crit" min="5" max="100" value="30">
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#eff6ff; color:#2563eb;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="kpi-title">Schüler Gesamt</div>
+          <div class="kpi-value" id="kpi-students">0</div>
+          <div class="kpi-sub">Im Datensatz</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#eef2ff; color:#4f46e5;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="kpi-title">Fehlstunden</div>
+          <div class="kpi-value" id="kpi-hours">0 <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span></div>
+          <div class="kpi-sub" id="kpi-avg-hours">Ø 0 h / Schüler</div>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon" style="background:#fffbeb; color:#d97706;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div>
+          <div class="kpi-title">Unentschuldigt</div>
+          <div class="kpi-value" style="color:#d97706;" id="kpi-unexcused">0 <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span></div>
+          <div class="kpi-sub" id="kpi-unexcused-rate" style="color:#b45309; font-weight:600;">0% Quote</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-critical" id="kpi-card-critical" title="Klicken, um nur kritische Fälle anzuzeigen">
+        <div class="kpi-icon" style="background:#dc2626; color:white;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div>
+          <div class="kpi-title" style="color:#b91c1c;">Kritische Fälle</div>
+          <div class="kpi-value" style="color:#7f1d1d;" id="kpi-critical-count">0</div>
+          <div class="kpi-sub" style="color:#b91c1c; font-weight:600;">Sofortige Prüfung</div>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-warning" id="kpi-card-warning" title="Klicken, um nur auffällige Fälle anzuzeigen">
+        <div class="kpi-icon" style="background:#f59e0b; color:white;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div>
+          <div class="kpi-title" style="color:#92400e;">Auffällig</div>
+          <div class="kpi-value" style="color:#78350f;" id="kpi-warning-count">0</div>
+          <div class="kpi-sub" style="color:#92400e; font-weight:600;">Beobachtung nötig</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Class Comparison Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <div>
+          <h2>Klassen-Vergleich & Risikoeinstufung</h2>
+          <p style="font-size:12px; color:var(--text-muted);">Klicke auf eine Klasse, um die Schülerliste unten zu filtern</p>
+        </div>
+      </div>
+      <div class="classes-grid" id="classes-container">
+        <!-- Dynamically rendered -->
+      </div>
+    </div>
+
+    <!-- Student Table Section -->
+    <div class="section-card" style="padding:0; overflow:hidden;">
+      <div style="padding: 16px 20px;">
+        <div class="table-controls">
+          <div class="filters-group">
+            <input type="text" id="student-search" class="search-input" placeholder="Schüler suchen (Name, ID)...">
+            <select id="class-select" class="select-input">
+              <option value="">Alle Klassen</option>
+            </select>
+            <div class="status-tabs">
+              <button class="tab-btn active" data-status="all">Alle</button>
+              <button class="tab-btn tab-btn-critical" data-status="critical">🔴 Kritisch</button>
+              <button class="tab-btn tab-btn-warning" data-status="warning">🟡 Auffällig</button>
+              <button class="tab-btn tab-btn-normal" data-status="normal">🟢 Normal</button>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span id="filtered-count" style="font-size:12px; color:#64748b; font-weight:500;">0 Schüler</span>
+            <button id="export-csv-btn" class="btn btn-secondary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" x2="12" y1="15" y2="3"></line>
+              </svg>
+              CSV Export
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th data-sort="name">Name / ID ↕</th>
+                <th data-sort="klasse">Klasse ↕</th>
+                <th data-sort="absentHours">Fehlzeit Gesamt ↕</th>
+                <th data-sort="absentHoursNotExcused">Unentschuldigt ↕</th>
+                <th data-sort="unexcusedPercentage">Quote (%) ↕</th>
+                <th>Status & Auffälligkeiten</th>
+              </tr>
+            </thead>
+            <tbody id="students-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Upload Modal -->
+  <div id="upload-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="font-size:16px; font-weight:700;">CSV Fehlzeiten importieren</h3>
+        <button id="close-upload-btn" style="border:none; background:none; cursor:pointer; font-size:18px; color:#64748b;">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="dropzone" class="dropzone">
+          <input type="file" id="file-input" accept=".csv,text/csv" style="display:none;">
+          <div style="width:44px; height:44px; background:#eff6ff; color:#2563eb; border-radius:10px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+              <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+            </svg>
+          </div>
+          <p style="font-weight:700; font-size:14px; color:#1e293b;">CSV-Datei hierher ziehen oder <span style="color:#2563eb; text-decoration:underline;">auswählen</span></p>
+          <p style="font-size:12px; color:#94a3b8; margin-top:4px;">Erkennt automatisch Komma, Semikolon und Tabulator</p>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; font-size:12px;">
+          <p style="font-weight:700; margin-bottom:6px; color:#334155;">Erwartete CSV-Spalten:</p>
+          <div style="display:flex; flex-wrap:wrap; gap:4px; font-family:monospace; font-size:11px;">
+            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">studentId</span>
+            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">name</span>
+            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">klasse</span>
+            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">klasseId</span>
+            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">absentMins</span>
+            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">absentMinsNotExcused</span>
+            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">absentHours</span>
+            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">absentHoursNotExcused</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-upload-btn" class="btn btn-secondary">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Detail Modal -->
+  <div id="detail-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span id="modal-student-id" style="font-size:11px; font-family:monospace; color:#94a3b8;">ID: S1001</span>
+          <h3 id="modal-student-name" style="font-size:18px; font-weight:800; color:#0f172a;">Max Mustermann</h3>
+          <p id="modal-student-class" style="font-size:12px; font-weight:600; color:#64748b;">Klasse 9a</p>
+        </div>
+        <button id="close-detail-btn" style="border:none; background:none; cursor:pointer; font-size:18px; color:#64748b;">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <div id="modal-status-badge" style="padding:12px; border-radius:10px; border:1px solid transparent; display:flex; align-items:center; gap:10px;">
+          <div>
+            <div style="font-size:11px; font-weight:700; text-transform:uppercase;" id="modal-status-category">Einstufung</div>
+            <div style="font-size:14px; font-weight:700;" id="modal-status-desc">Status</div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Gesamt</div>
+            <div style="font-size:18px; font-weight:800; color:#0f172a; margin-top:2px;" id="modal-hours-total">0h</div>
+            <div style="font-size:11px; color:#94a3b8;" id="modal-mins-total">0 Min</div>
+          </div>
+          <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:10px;">
+            <div style="font-size:11px; font-weight:700; color:#b45309; text-transform:uppercase;">Unentschuldigt</div>
+            <div style="font-size:18px; font-weight:800; color:#b45309; margin-top:2px;" id="modal-hours-unex">0h</div>
+            <div style="font-size:11px; color:#d97706;" id="modal-mins-unex">0 Min</div>
+          </div>
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:10px;">
+            <div style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Entschuldigt</div>
+            <div style="font-size:18px; font-weight:800; color:#15803d; margin-top:2px;" id="modal-hours-ex">0h</div>
+            <div style="font-size:11px; color:#16a34a;" id="modal-mins-ex">0 Min</div>
+          </div>
+        </div>
+
+        <div>
+          <p style="font-size:12px; font-weight:700; margin-bottom:6px; color:#334155;">Identifizierte Auffälligkeiten:</p>
+          <ul id="modal-risk-list" style="list-style:none; display:flex; flex-direction:column; gap:6px;">
+            <!-- Rendered list items -->
+          </ul>
+        </div>
+
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px; font-size:12px; color:#1e40af;">
+          <p style="font-weight:700; margin-bottom:4px; color:#1e3a8a;">Verwaltungs-Checkliste:</p>
+          <ul id="modal-actions-list" style="list-style-type:disc; list-style-position:inside; display:flex; flex-direction:column; gap:3px;">
+            <!-- Rendered actions -->
+          </ul>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button id="close-detail-footer-btn" class="btn btn-dark">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- 1. SAMPLE DATASET (REALISTIC SCHOOL DATA) ---
+    const SAMPLE_CSV = `studentId,name,klasse,klasseId,absentMins,absentMinsNotExcused,absentHours,absentHoursNotExcused
+S1001,Maximilian Schmidt,9a,K09A,1800,720,30,12
+S1002,Sophie Weber,9a,K09A,450,90,7.5,1.5
+S1003,Leon Fischer,9a,K09A,2250,900,37.5,15
+S1004,Mia Wagner,9a,K09A,180,0,3,0
+S1005,Lukas Becker,9a,K09A,1350,360,22.5,6
+S1006,Emma Hoffmann,9b,K09B,360,0,6,0
+S1007,Elias Schafer,9b,K09B,1620,540,27,9
+S1008,Hannah Koch,9b,K09B,270,0,4.5,0
+S1009,Jonas Bauer,9b,K09B,2160,810,36,13.5
+S1010,Lea Richter,9b,K09B,540,90,9,1.5
+S1011,Noah Klein,10a,K10A,90,0,1.5,0
+S1012,Emily Wolf,10a,K10A,1800,270,30,4.5
+S1013,Paul Schroder,10a,K10A,2700,1080,45,18
+S1014,Marie Neumann,10a,K10A,450,0,7.5,0
+S1015,Felix Schwarz,10a,K10A,1260,360,21,6
+S1016,Lina Zimmermann,10b,K10B,180,0,3,0
+S1017,Ben Braun,10b,K10B,450,0,7.5,0
+S1018,Laura Kruger,10b,K10B,360,90,6,1.5
+S1019,Tim Hartmann,10b,K10B,630,0,10.5,0
+S1020,Anna Lange,10b,K10B,270,0,4.5,0
+S1021,David Werner,8a,K08A,1980,630,33,10.5
+S1022,Clara Krause,8a,K08A,540,0,9,0
+S1023,Moritz Meier,8a,K08A,1440,360,24,6
+S1024,Sarah Lehmann,8a,K08A,180,0,3,0
+S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
+
+    // --- 2. STATE ---
+    let state = {
+      rawStudents: [],
+      analyzedStudents: [],
+      classes: [],
+      kpis: null,
+      selectedClass: '',
+      statusFilter: 'all',
+      searchTerm: '',
+      sortField: 'absentHoursNotExcused',
+      sortAsc: false,
+      thresholds: {
+        unexcusedHoursCritical: 10,
+        unexcusedHoursWarning: 4,
+        absentHoursCritical: 35,
+        absentHoursWarning: 20,
+        unexcusedRateCritical: 30
+      },
+      currentFileName: 'sample_fehlzeiten.csv'
+    };
+
+    // --- 3. ROBUST CSV PARSER ---
+    function parseCsvString(csvText) {
+      if (csvText.charCodeAt(0) === 0xFEFF) {
+        csvText = csvText.slice(1);
+      }
+      const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+      if (lines.length < 2) throw new Error('CSV-Datei enthält keine Datensätze.');
+
+      // Delimiter detection
+      const firstLine = lines[0];
+      let delimiter = ',';
+      const countComma = (firstLine.match(/,/g) || []).length;
+      const countSemicolon = (firstLine.match(/;/g) || []).length;
+      const countTab = (firstLine.match(/\t/g) || []).length;
+
+      if (countSemicolon > countComma && countSemicolon > countTab) delimiter = ';';
+      else if (countTab > countComma && countTab > countSemicolon) delimiter = '\t';
+
+      // Parse headers
+      const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''));
+      
+      const colMap = {
+        studentid: 'studentId', id: 'studentId', schuelerid: 'studentId',
+        name: 'name', schueler: 'name',
+        klasse: 'klasse', class: 'klasse',
+        klasseid: 'klasseId', classid: 'klasseId',
+        absentmins: 'absentMins', fehlminuten: 'absentMins',
+        absentminsnotexcused: 'absentMinsNotExcused', fehlminutenunentschuldigt: 'absentMinsNotExcused',
+        absenthours: 'absentHours', fehlstunden: 'absentHours',
+        absenthoursnotexcused: 'absentHoursNotExcused', fehlstundenunentschuldigt: 'absentHoursNotExcused'
+      };
+
+      const normalizedHeaders = headers.map(h => colMap[h] || h);
+
+      const students = [];
+      for (let i = 1; i < lines.length; i++) {
+        const parts = lines[i].split(delimiter).map(p => p.trim().replace(/^["']|["']$/g, ''));
+        if (parts.length === 0 || (parts.length === 1 && parts[0] === '')) continue;
+
+        const row = {};
+        for (let j = 0; j < normalizedHeaders.length; j++) {
+          row[normalizedHeaders[j]] = parts[j] !== undefined ? parts[j] : '';
+        }
+
+        const studentId = row.studentId || `S-${i}`;
+        const name = row.name || 'Unbekannt';
+        const klasse = row.klasse || 'Ohne Klasse';
+        const klasseId = row.klasseId || klasse;
+
+        const absentMins = Math.max(0, parseInt(row.absentMins, 10) || 0);
+        const absentMinsNotExcused = Math.max(0, parseInt(row.absentMinsNotExcused, 10) || 0);
+        let absentHours = Math.max(0, parseFloat(row.absentHours) || 0);
+        let absentHoursNotExcused = Math.max(0, parseFloat(row.absentHoursNotExcused) || 0);
+
+        if (absentHours === 0 && absentMins > 0) absentHours = Math.round((absentMins / 45) * 10) / 10;
+        if (absentHoursNotExcused === 0 && absentMinsNotExcused > 0) absentHoursNotExcused = Math.round((absentMinsNotExcused / 45) * 10) / 10;
+
+        students.push({
+          studentId, name, klasse, klasseId,
+          absentMins, absentMinsNotExcused,
+          absentHours, absentHoursNotExcused
+        });
+      }
+
+      return students;
+    }
+
+    // --- 4. STATISTICAL & ANOMALY ANALYZER ---
+    function round(num, decimals = 1) {
+      const f = Math.pow(10, decimals);
+      return Math.round((num + Number.EPSILON) * f) / f;
+    }
+
+    function analyzeStudent(student, th) {
+      const { absentHours, absentHoursNotExcused } = student;
+      const unexcusedPercentage = absentHours > 0 ? round((absentHoursNotExcused / absentHours) * 100, 1) : 0;
+      const riskFactors = [];
+      let status = 'normal';
+
+      const isCritUnex = absentHoursNotExcused >= th.unexcusedHoursCritical;
+      const isCritRate = unexcusedPercentage >= th.unexcusedRateCritical && absentHours >= 10;
+      const isCritTotal = absentHours >= th.absentHoursCritical;
+
+      if (isCritUnex) riskFactors.push(`Kritisch: ${absentHoursNotExcused} unentschuldigte Stunden (>= ${th.unexcusedHoursCritical}h)`);
+      if (isCritRate) riskFactors.push(`Kritisch: ${unexcusedPercentage}% unentschuldigt bei ${absentHours} Gesamtstunden`);
+      if (isCritTotal) riskFactors.push(`Kritisch: Extrem hohe Gesamtfehlzeit (${absentHours}h >= ${th.absentHoursCritical}h)`);
+
+      if (isCritUnex || isCritRate || isCritTotal) {
+        status = 'critical';
+      } else {
+        const isWarnUnex = absentHoursNotExcused >= th.unexcusedHoursWarning;
+        const isWarnRate = unexcusedPercentage >= 20 && absentHours >= 6;
+        const isWarnTotal = absentHours >= th.absentHoursWarning;
+
+        if (isWarnUnex) riskFactors.push(`Auffällig: ${absentHoursNotExcused} unentschuldigte Stunden (>= ${th.unexcusedHoursWarning}h)`);
+        if (isWarnRate) riskFactors.push(`Auffällig: ${unexcusedPercentage}% unentschuldigt (>= 20%)`);
+        if (isWarnTotal) riskFactors.push(`Auffällig: Erhöhte Gesamtfehlzeit (${absentHours}h >= ${th.absentHoursWarning}h)`);
+
+        if (isWarnUnex || isWarnRate || isWarnTotal) status = 'warning';
+      }
+
+      return { ...student, unexcusedPercentage, status, riskFactors };
+    }
+
+    function runFullAnalysis(rawStudents, thresholds) {
+      const analyzed = rawStudents.map(s => analyzeStudent(s, thresholds));
+      
+      // Calculate KPIs
+      let totalAbsentHours = 0, totalUnexcusedHours = 0;
+      let critCount = 0, warnCount = 0, normCount = 0;
+      
+      const classMap = new Map();
+
+      for (const s of analyzed) {
+        totalAbsentHours += s.absentHours;
+        totalUnexcusedHours += s.absentHoursNotExcused;
+        if (s.status === 'critical') critCount++;
+        else if (s.status === 'warning') warnCount++;
+        else normCount++;
+
+        const k = s.klasse || 'Unbekannt';
+        if (!classMap.has(k)) {
+          classMap.set(k, { klasse: k, studentCount: 0, totalAbsentHours: 0, totalUnexcusedHours: 0, criticalCount: 0, warningCount: 0, normalCount: 0 });
+        }
+        const c = classMap.get(k);
+        c.studentCount++;
+        c.totalAbsentHours += s.absentHours;
+        c.totalUnexcusedHours += s.absentHoursNotExcused;
+        if (s.status === 'critical') c.criticalCount++;
+        else if (s.status === 'warning') c.warningCount++;
+        else c.normalCount++;
+      }
+
+      const totalStudents = analyzed.length;
+      totalAbsentHours = round(totalAbsentHours, 1);
+      totalUnexcusedHours = round(totalUnexcusedHours, 1);
+      const unexcusedPercentage = totalAbsentHours > 0 ? round((totalUnexcusedHours / totalAbsentHours) * 100, 1) : 0;
+      const avgAbsentHoursPerStudent = totalStudents > 0 ? round(totalAbsentHours / totalStudents, 2) : 0;
+
+      const kpis = {
+        totalStudents, totalAbsentHours, totalUnexcusedHours, unexcusedPercentage, avgAbsentHoursPerStudent,
+        criticalStudentsCount: critCount, warningStudentsCount: warnCount, normalStudentsCount: normCount
+      };
+
+      const classes = [];
+      for (const c of classMap.values()) {
+        const cTotalH = round(c.totalAbsentHours, 1);
+        const cUnexH = round(c.totalUnexcusedHours, 1);
+        const avgH = c.studentCount > 0 ? round(c.totalAbsentHours / c.studentCount, 2) : 0;
+        const unexPct = cTotalH > 0 ? round((cUnexH / cTotalH) * 100, 1) : 0;
+
+        const weightedRiskShare = c.studentCount > 0 ? ((c.criticalCount * 2.5 + c.warningCount * 1.0) / c.studentCount) * 100 : 0;
+        const riskScore = round(Math.min(100, (weightedRiskShare * 0.5) + (unexPct * 0.5)), 1);
+
+        classes.push({
+          klasse: c.klasse,
+          studentCount: c.studentCount,
+          totalAbsentHours: cTotalH,
+          totalUnexcusedHours: cUnexH,
+          avgAbsentHours: avgH,
+          unexcusedPercentage: unexPct,
+          criticalCount: c.criticalCount,
+          warningCount: c.warningCount,
+          riskScore
+        });
+      }
+
+      classes.sort((a, b) => b.riskScore - a.riskScore || b.totalUnexcusedHours - a.totalUnexcusedHours);
+
+      return { analyzedStudents: analyzed, classes, kpis };
+    }
+
+    // --- 5. RENDER FUNCTIONS ---
+    function renderDashboard() {
+      // KPIs
+      document.getElementById('kpi-students').textContent = state.kpis.totalStudents;
+      document.getElementById('kpi-hours').innerHTML = `${state.kpis.totalAbsentHours} <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span>`;
+      document.getElementById('kpi-avg-hours').textContent = `Ø ${state.kpis.avgAbsentHoursPerStudent} h / Schüler`;
+      document.getElementById('kpi-unexcused').innerHTML = `${state.kpis.totalUnexcusedHours} <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span>`;
+      document.getElementById('kpi-unexcused-rate').textContent = `${state.kpis.unexcusedPercentage}% aller Fehlzeiten`;
+      document.getElementById('kpi-critical-count').textContent = state.kpis.criticalStudentsCount;
+      document.getElementById('kpi-warning-count').textContent = state.kpis.warningStudentsCount;
+
+      // File Meta Badge
+      document.getElementById('file-meta').style.display = 'inline-flex';
+      document.getElementById('file-name-text').textContent = state.currentFileName;
+      document.getElementById('file-count-text').textContent = `${state.kpis.totalStudents} Schüler`;
+
+      // Classes
+      renderClasses();
+
+      // Class Filter Select Dropdown
+      const classSelect = document.getElementById('class-select');
+      const curSelected = state.selectedClass;
+      classSelect.innerHTML = '<option value="">Alle Klassen</option>';
+      state.classes.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.klasse;
+        opt.textContent = `Klasse ${c.klasse} (${c.studentCount})`;
+        if (c.klasse === curSelected) opt.selected = true;
+        classSelect.appendChild(opt);
+      });
+
+      // Table
+      renderTable();
+    }
+
+    function renderClasses() {
+      const container = document.getElementById('classes-container');
+      container.innerHTML = '';
+      const maxHours = Math.max(...state.classes.map(c => c.totalAbsentHours), 1);
+
+      state.classes.forEach(c => {
+        const card = document.createElement('div');
+        const isSelected = state.selectedClass === c.klasse;
+        card.className = `class-card ${isSelected ? 'selected' : ''}`;
+        
+        let scoreClass = 'score-normal';
+        if (c.riskScore >= 60) scoreClass = 'score-critical';
+        else if (c.riskScore >= 35) scoreClass = 'score-warning';
+
+        const barWidth = Math.min(100, Math.round((c.totalAbsentHours / maxHours) * 100));
+        const unexBarWidth = (c.unexcusedPercentage / 100) * barWidth;
+
+        card.innerHTML = `
+          <div class="class-header">
+            <div class="class-title">Klasse ${c.klasse} <span style="font-size:12px; font-weight:500; color:#64748b;">(${c.studentCount} Schüler)</span></div>
+            <span class="score-badge ${scoreClass}">Score: ${c.riskScore}</span>
+          </div>
+          <div style="font-size:12px; color:#475569; display:flex; justify-content:space-between; font-weight:500;">
+            <span>Fehlstunden: <strong>${c.totalAbsentHours}h</strong></span>
+            <span>Unentschuldigt: <strong style="color:#d97706;">${c.totalUnexcusedHours}h</strong> (${c.unexcusedPercentage}%)</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="bar-total" style="width:${barWidth}%;"></div>
+            <div class="bar-unexcused" style="width:${unexBarWidth}%;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#64748b; padding-top:4px; border-top:1px solid #e2e8f0;">
+            <span>Ø ${c.avgAbsentHours} h/Schüler</span>
+            <div style="display:flex; gap:6px; font-weight:700;">
+              ${c.criticalCount > 0 ? `<span style="color:#dc2626;">🔴 ${c.criticalCount}</span>` : ''}
+              ${c.warningCount > 0 ? `<span style="color:#d97706;">🟡 ${c.warningCount}</span>` : ''}
+              ${c.criticalCount === 0 && c.warningCount === 0 ? `<span style="color:#16a34a;">🟢 Unauffällig</span>` : ''}
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          state.selectedClass = isSelected ? '' : c.klasse;
+          document.getElementById('class-select').value = state.selectedClass;
+          renderClasses();
+          renderTable();
+        });
+
+        container.appendChild(card);
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('students-tbody');
+      tbody.innerHTML = '';
+
+      // Filter
+      let list = state.analyzedStudents.filter(s => {
+        if (state.selectedClass && s.klasse !== state.selectedClass) return false;
+        if (state.statusFilter !== 'all' && s.status !== state.statusFilter) return false;
+        if (state.searchTerm) {
+          const q = state.searchTerm.toLowerCase();
+          const matchName = s.name.toLowerCase().includes(q);
+          const matchId = s.studentId.toString().toLowerCase().includes(q);
+          const matchKlasse = s.klasse.toLowerCase().includes(q);
+          if (!matchName && !matchId && !matchKlasse) return false;
+        }
+        return true;
+      });
+
+      // Sort
+      list.sort((a, b) => {
+        let valA = a[state.sortField];
+        let valB = b[state.sortField];
+        if (typeof valA === 'string') {
+          return state.sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+        return state.sortAsc ? valA - valB : valB - valA;
+      });
+
+      document.getElementById('filtered-count').textContent = `${list.length} von ${state.analyzedStudents.length} Schülern`;
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:32px; color:#94a3b8;">Keine Schüler für die gewählten Filter gefunden.</td></tr>';
+        return;
+      }
+
+      list.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.className = 'clickable-row';
+
+        let badgeClass = 'badge-normal';
+        let badgeIcon = '🟢';
+        let badgeText = 'Normal';
+
+        if (s.status === 'critical') {
+          badgeClass = 'badge-critical';
+          badgeIcon = '🔴';
+          badgeText = 'Kritisch';
+        } else if (s.status === 'warning') {
+          badgeClass = 'badge-warning';
+          badgeIcon = '🟡';
+          badgeText = 'Auffällig';
+        }
+
+        const unexBarColor = s.unexcusedPercentage >= 30 ? '#ef4444' : (s.unexcusedPercentage >= 15 ? '#f59e0b' : '#3b82f6');
+
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight:700; color:#0f172a;">${s.name}</div>
+            <div style="font-size:11px; font-family:monospace; color:#94a3b8;">ID: ${s.studentId}</div>
+          </td>
+          <td>
+            <span style="background:#f1f5f9; padding:2px 8px; border-radius:4px; font-weight:700; font-size:11px; color:#334155;">${s.klasse}</span>
+          </td>
+          <td>
+            <div style="font-weight:700; color:#1e293b;">${s.absentHours} Std</div>
+            <div style="font-size:11px; color:#94a3b8;">${s.absentMins} Min</div>
+          </td>
+          <td>
+            <div style="font-weight:700; color:${s.absentHoursNotExcused > 0 ? '#d97706' : '#475569'};">${s.absentHoursNotExcused} Std</div>
+            <div style="font-size:11px; color:#94a3b8;">${s.absentMinsNotExcused} Min</div>
+          </td>
+          <td>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <div style="width:48px; height:6px; background:#f1f5f9; border-radius:9999px; overflow:hidden;">
+                <div style="height:100%; width:${Math.min(100, s.unexcusedPercentage)}%; background:${unexBarColor};"></div>
+              </div>
+              <span style="font-weight:700; color:#334155;">${s.unexcusedPercentage}%</span>
+            </div>
+          </td>
+          <td>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="badge ${badgeClass}">${badgeIcon} ${badgeText}</span>
+              ${s.riskFactors.length > 0 ? `<span style="font-size:11px; color:#64748b; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:240px;" title="${s.riskFactors.join('\n')}">• ${s.riskFactors[0]}</span>` : ''}
+            </div>
+          </td>
+        `;
+
+        tr.addEventListener('click', () => openStudentModal(s));
+        tbody.appendChild(tr);
+      });
+    }
+
+    // --- 6. STUDENT DETAIL MODAL ---
+    function openStudentModal(student) {
+      document.getElementById('modal-student-id').textContent = `ID: ${student.studentId}`;
+      document.getElementById('modal-student-name').textContent = student.name;
+      document.getElementById('modal-student-class').textContent = `Klasse ${student.klasse} (Klassen-ID: ${student.klasseId})`;
+
+      const excusedHours = Math.max(0, round(student.absentHours - student.absentHoursNotExcused, 1));
+      const excusedMins = Math.max(0, student.absentMins - student.absentMinsNotExcused);
+
+      document.getElementById('modal-hours-total').textContent = `${student.absentHours}h`;
+      document.getElementById('modal-mins-total').textContent = `${student.absentMins} Min`;
+      document.getElementById('modal-hours-unex').textContent = `${student.absentHoursNotExcused}h`;
+      document.getElementById('modal-mins-unex').textContent = `${student.absentMinsNotExcused} Min (${student.unexcusedPercentage}%)`;
+      document.getElementById('modal-hours-ex').textContent = `${excusedHours}h`;
+      document.getElementById('modal-mins-ex').textContent = `${excusedMins} Min`;
+
+      const badgeDiv = document.getElementById('modal-status-badge');
+      const catEl = document.getElementById('modal-status-category');
+      const descEl = document.getElementById('modal-status-desc');
+
+      if (student.status === 'critical') {
+        badgeDiv.style.background = '#fef2f2';
+        badgeDiv.style.borderColor = '#fecaca';
+        badgeDiv.style.color = '#991b1b';
+        catEl.textContent = 'Einstufung Schulverwaltung: Kritisch';
+        descEl.textContent = 'Sofortige Prüfung & Einleitung von Maßnahmen';
+      } else if (student.status === 'warning') {
+        badgeDiv.style.background = '#fffbeb';
+        badgeDiv.style.borderColor = '#fde68a';
+        badgeDiv.style.color = '#92400e';
+        catEl.textContent = 'Einstufung Schulverwaltung: Auffällig';
+        descEl.textContent = 'Unter Beobachtung & Rücksprache mit Klassenleitung';
+      } else {
+        badgeDiv.style.background = '#f0fdf4';
+        badgeDiv.style.borderColor = '#bbf7d0';
+        badgeDiv.style.color = '#166534';
+        catEl.textContent = 'Einstufung Schulverwaltung: Normal';
+        descEl.textContent = 'Fehlzeiten liegen im unauffälligen Bereich';
+      }
+
+      // Risk factors list
+      const riskList = document.getElementById('modal-risk-list');
+      riskList.innerHTML = '';
+      if (student.riskFactors.length === 0) {
+        riskList.innerHTML = '<li style="font-size:12px; color:#16a34a; background:#f0fdf4; border:1px solid #bbf7d0; padding:6px 10px; border-radius:6px;">Keine Auffälligkeiten vorhanden.</li>';
+      } else {
+        student.riskFactors.forEach(rf => {
+          const li = document.createElement('li');
+          li.style.cssText = 'font-size:12px; color:#b91c1c; background:#fef2f2; border:1px solid #fee2e2; padding:6px 10px; border-radius:6px; display:flex; align-items:center; gap:6px;';
+          li.innerHTML = '<span style="width:6px; height:6px; border-radius:50%; background:#ef4444; flex-shrink:0;"></span>' + rf;
+          riskList.appendChild(li);
+        });
+      }
+
+      // Action checklist
+      const actionsList = document.getElementById('modal-actions-list');
+      actionsList.innerHTML = '';
+      if (student.status === 'critical') {
+        actionsList.innerHTML = `
+          <li>Schriftliche Mahnung an Erziehungsberechtigte versenden</li>
+          <li>Klassenleitung und Schulsozialarbeit kontaktieren</li>
+          <li>Prüfung von Attestpflicht oder Einleitung Ordnungswidrigkeitsverfahren</li>
+        `;
+      } else if (student.status === 'warning') {
+        actionsList.innerHTML = `
+          <li>Rücksprache mit Klassenleitung bei nächster Konferenz</li>
+          <li>Nachweis ausstehender Entschuldigungsschreiben anfordern</li>
+        `;
+      } else {
+        actionsList.innerHTML = '<li>Keine Verwaltungsmaßnahmen erforderlich</li>';
+      }
+
+      document.getElementById('detail-modal').style.display = 'flex';
+    }
+
+    // --- 7. EXPORT FILTERED CSV ---
+    function exportFilteredCsv() {
+      let list = state.analyzedStudents.filter(s => {
+        if (state.selectedClass && s.klasse !== state.selectedClass) return false;
+        if (state.statusFilter !== 'all' && s.status !== state.statusFilter) return false;
+        if (state.searchTerm) {
+          const q = state.searchTerm.toLowerCase();
+          const matchName = s.name.toLowerCase().includes(q);
+          const matchId = s.studentId.toString().toLowerCase().includes(q);
+          const matchKlasse = s.klasse.toLowerCase().includes(q);
+          if (!matchName && !matchId && !matchKlasse) return false;
+        }
+        return true;
+      });
+
+      if (list.length === 0) {
+        alert('Keine Schüler zum Exportieren vorhanden.');
+        return;
+      }
+
+      const headers = ['studentId', 'name', 'klasse', 'klasseId', 'absentHours', 'absentHoursNotExcused', 'unexcusedPercentage', 'status', 'riskFactors'];
+      const rows = list.map(s => [
+        `"${s.studentId}"`,
+        `"${s.name}"`,
+        `"${s.klasse}"`,
+        `"${s.klasseId}"`,
+        s.absentHours,
+        s.absentHoursNotExcused,
+        `"${s.unexcusedPercentage}%"`,
+        s.status,
+        `"${(s.riskFactors || []).join('; ')}"`
+      ]);
+
+      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `fehlzeiten_auswertung_${state.selectedClass || 'alle'}_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // --- 8. INITIALIZATION & EVENT LISTENERS ---
+    function loadCsvData(csvText, fileName = 'upload.csv') {
+      try {
+        const students = parseCsvString(csvText);
+        state.rawStudents = students;
+        state.currentFileName = fileName;
+        recalculateAndRender();
+      } catch (err) {
+        alert('Fehler beim Verarbeiten der CSV: ' + err.message);
+      }
+    }
+
+    function recalculateAndRender() {
+      const res = runFullAnalysis(state.rawStudents, state.thresholds);
+      state.analyzedStudents = res.analyzedStudents;
+      state.classes = res.classes;
+      state.kpis = res.kpis;
+      renderDashboard();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // 1. Initial Load Demo
+      loadCsvData(SAMPLE_CSV, 'sample_fehlzeiten.csv');
+
+      // 2. Demo Button
+      document.getElementById('load-demo-btn').addEventListener('click', () => {
+        loadCsvData(SAMPLE_CSV, 'sample_fehlzeiten.csv');
+      });
+
+      // 3. Threshold Toggle & Settings
+      const panel = document.getElementById('threshold-panel');
+      document.getElementById('toggle-threshold-btn').addEventListener('click', () => {
+        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+      });
+
+      document.getElementById('apply-thresholds-btn').addEventListener('click', () => {
+        state.thresholds.unexcusedHoursCritical = parseFloat(document.getElementById('th-unex-crit').value) || 10;
+        state.thresholds.unexcusedHoursWarning = parseFloat(document.getElementById('th-unex-warn').value) || 4;
+        state.thresholds.absentHoursCritical = parseFloat(document.getElementById('th-tot-crit').value) || 35;
+        state.thresholds.absentHoursWarning = parseFloat(document.getElementById('th-tot-warn').value) || 20;
+        state.thresholds.unexcusedRateCritical = parseFloat(document.getElementById('th-rate-crit').value) || 30;
+        recalculateAndRender();
+      });
+
+      document.getElementById('reset-thresholds-btn').addEventListener('click', () => {
+        state.thresholds = {
+          unexcusedHoursCritical: 10,
+          unexcusedHoursWarning: 4,
+          absentHoursCritical: 35,
+          absentHoursWarning: 20,
+          unexcusedRateCritical: 30
+        };
+        document.getElementById('th-unex-crit').value = 10;
+        document.getElementById('th-unex-warn').value = 4;
+        document.getElementById('th-tot-crit').value = 35;
+        document.getElementById('th-tot-warn').value = 20;
+        document.getElementById('th-rate-crit').value = 30;
+        recalculateAndRender();
+      });
+
+      // 4. Quick Filter via KPI Cards
+      document.getElementById('kpi-card-critical').addEventListener('click', () => {
+        state.statusFilter = state.statusFilter === 'critical' ? 'all' : 'critical';
+        updateStatusTabs();
+        renderTable();
+      });
+      document.getElementById('kpi-card-warning').addEventListener('click', () => {
+        state.statusFilter = state.statusFilter === 'warning' ? 'all' : 'warning';
+        updateStatusTabs();
+        renderTable();
+      });
+
+      // 5. Search & Filters
+      document.getElementById('student-search').addEventListener('input', (e) => {
+        state.searchTerm = e.target.value;
+        renderTable();
+      });
+
+      document.getElementById('class-select').addEventListener('change', (e) => {
+        state.selectedClass = e.target.value;
+        renderClasses();
+        renderTable();
+      });
+
+      // Status Tabs
+      function updateStatusTabs() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          if (btn.dataset.status === state.statusFilter) btn.classList.add('active');
+          else btn.classList.remove('active');
+        });
+      }
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.statusFilter = btn.dataset.status;
+          updateStatusTabs();
+          renderTable();
+        });
+      });
+
+      // Sort Columns
+      document.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const field = th.dataset.sort;
+          if (state.sortField === field) {
+            state.sortAsc = !state.sortAsc;
+          } else {
+            state.sortField = field;
+            state.sortAsc = false;
+          }
+          renderTable();
+        });
+      });
+
+      // 6. CSV Export
+      document.getElementById('export-csv-btn').addEventListener('click', exportFilteredCsv);
+
+      // 7. Modals
+      const uploadModal = document.getElementById('upload-modal');
+      const openUploadBtn = document.getElementById('open-upload-btn');
+      const closeUploadBtn = document.getElementById('close-upload-btn');
+      const cancelUploadBtn = document.getElementById('cancel-upload-btn');
+      const dropzone = document.getElementById('dropzone');
+      const fileInput = document.getElementById('file-input');
+
+      openUploadBtn.addEventListener('click', () => uploadModal.style.display = 'flex');
+      closeUploadBtn.addEventListener('click', () => uploadModal.style.display = 'none');
+      cancelUploadBtn.addEventListener('click', () => uploadModal.style.display = 'none');
+
+      dropzone.addEventListener('click', () => fileInput.click());
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleFile(e.dataTransfer.files[0]);
+        }
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+          handleFile(e.target.files[0]);
+        }
+      });
+
+      function handleFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          loadCsvData(e.target.result, file.name);
+          uploadModal.style.display = 'none';
+        };
+        reader.readAsText(file);
+      }
+
+      // Detail Modal Close
+      const detailModal = document.getElementById('detail-modal');
+      document.getElementById('close-detail-btn').addEventListener('click', () => detailModal.style.display = 'none');
+      document.getElementById('close-detail-footer-btn').addEventListener('click', () => detailModal.style.display = 'none');
+      window.addEventListener('click', (e) => {
+        if (e.target === uploadModal) uploadModal.style.display = 'none';
+        if (e.target === detailModal) detailModal.style.display = 'none';
+      });
+    });
+  </script>
+</body>
+</html>

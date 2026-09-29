@@ -41,13 +41,19 @@ S1003,Leon Fischer,9a,K09A,2250,900,37.5,15
 
 ---
 
-## 🛠️ Installation & Start
+## 🛠️ Verwendung
 
-### Voraussetzungen
-- Node.js (>= 18)
-- npm
+### Option A: Rein über HTML (Ohne Installation / Server)
+Einfach die Datei **`index.html`** im Browser (per Doppelklick) öffnen!
+- 100% offline-fähig
+- Keine Abhängigkeiten, kein Node.js, kein Webserver nötig
+- Vollständiger CSV-Import, Klassen-Vergleich, Filter, Risiko-Erkennung & CSV-Export direkt im Browser.
 
-### 1. Backend starten
+---
+
+### Option B: Als Fullstack-Applikation (Node.js + React / Express)
+
+#### 1. Backend starten
 ```bash
 cd backend
 npm install
@@ -55,7 +61,7 @@ npm start
 ```
 *Backend läuft auf `http://localhost:5000`.*
 
-### 2. Frontend starten
+#### 2. Frontend starten
 ```bash
 cd frontend
 npm install
