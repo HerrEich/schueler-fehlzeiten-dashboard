@@ -1,0 +1,26 @@
+studentId,name,klasse,klasseId,absentMins,absentMinsNotExcused,absentHours,absentHoursNotExcused
+S1001,Maximilian Schmidt,9a,K09A,1800,720,30,12
+S1002,Sophie Weber,9a,K09A,450,90,7.5,1.5
+S1003,Leon Fischer,9a,K09A,2250,900,37.5,15
+S1004,Mia Wagner,9a,K09A,180,0,3,0
+S1005,Lukas Becker,9a,K09A,1350,360,22.5,6
+S1006,Emma Hoffmann,9b,K09B,360,0,6,0
+S1007,Elias Schafer,9b,K09B,1620,540,27,9
+S1008,Hannah Koch,9b,K09B,270,0,4.5,0
+S1009,Jonas Bauer,9b,K09B,2160,810,36,13.5
+S1010,Lea Richter,9b,K09B,540,90,9,1.5
+S1011,Noah Klein,10a,K10A,90,0,1.5,0
+S1012,Emily Wolf,10a,K10A,1800,270,30,4.5
+S1013,Paul Schroder,10a,K10A,2700,1080,45,18
+S1014,Marie Neumann,10a,K10A,450,0,7.5,0
+S1015,Felix Schwarz,10a,K10A,1260,360,21,6
+S1016,Lina Zimmermann,10b,K10B,180,0,3,0
+S1017,Ben Braun,10b,K10B,450,0,7.5,0
+S1018,Laura Kruger,10b,K10B,360,90,6,1.5
+S1019,Tim Hartmann,10b,K10B,630,0,10.5,0
+S1020,Anna Lange,10b,K10B,270,0,4.5,0
+S1021,David Werner,8a,K08A,1980,630,33,10.5
+S1022,Clara Krause,8a,K08A,540,0,9,0
+S1023,Moritz Meier,8a,K08A,1440,360,24,6
+S1024,Sarah Lehmann,8a,K08A,180,0,3,0
+S1025,Jan Huber,8a,K08A,90,0,1.5,0
