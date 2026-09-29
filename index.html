@@ -136,6 +136,45 @@
       gap: 24px;
     }
 
+    /* Auto-load Toast / Notification */
+    #notification-banner {
+      display: none;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* Empty State */
+    #empty-state {
+      display: none;
+      background: #ffffff;
+      border: 2px dashed #cbd5e1;
+      border-radius: 16px;
+      padding: 48px 24px;
+      text-align: center;
+      max-width: 720px;
+      margin: 20px auto;
+      width: 100%;
+    }
+    .empty-state-icon {
+      width: 56px;
+      height: 56px;
+      background: #eff6ff;
+      color: #2563eb;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+
     /* File Pill */
     .file-badge {
       display: inline-flex;
@@ -532,7 +571,7 @@
             <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
             <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
           </svg>
-          <span id="file-name-text">sample.csv</span> • <span id="file-count-text">0 Schüler</span>
+          <span id="file-name-text">datei.csv</span> • <span id="file-count-text">0 Schüler</span>
         </div>
 
         <button id="toggle-threshold-btn" class="btn btn-secondary">
@@ -547,13 +586,12 @@
           Grenzwerte
         </button>
 
-        <button id="load-demo-btn" class="btn btn-emerald">
+        <button id="scan-folder-btn" class="btn btn-emerald" title="Lokalen Ordner nach CSV-Dateien durchsuchen">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-            <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path>
+            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+            <circle cx="12" cy="13" r="2"></circle>
           </svg>
-          Demo-Daten
+          Ordner scannen
         </button>
 
         <button id="open-upload-btn" class="btn btn-primary">
@@ -562,7 +600,7 @@
             <polyline points="17 8 12 3 7 8"></polyline>
             <line x1="12" x2="12" y1="3" y2="15"></line>
           </svg>
-          CSV Importieren
+          CSV Auswählen
         </button>
       </div>
     </div>
@@ -570,6 +608,53 @@
 
   <!-- Main Container -->
   <main>
+
+    <!-- Auto-load Notification Banner -->
+    <div id="notification-banner">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:16px;">⚡</span>
+        <span id="notification-text">CSV-Datei automatisch erkannt und geladen.</span>
+      </div>
+      <button id="close-notification-btn" style="border:none; background:none; cursor:pointer; font-size:16px; color:#1e40af;">✕</button>
+    </div>
+
+    <!-- Empty State (Shown when no CSV is present) -->
+    <div id="empty-state">
+      <div class="empty-state-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
+          <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
+        </svg>
+      </div>
+      <h2 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:6px;">Keine Fehlzeiten-Daten geladen</h2>
+      <p style="font-size:13px; color:#64748b; max-width:480px; margin:0 auto 20px;">
+        Lege eine CSV-Datei (z. B. <code>fehlzeiten.csv</code>) in diesen Ordner oder wähle sie direkt aus.
+      </p>
+
+      <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:24px;">
+        <button id="empty-scan-btn" class="btn btn-emerald" style="padding:10px 18px; font-size:13px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+          </svg>
+          Ordner öffnen & CSV laden
+        </button>
+        <button id="empty-upload-btn" class="btn btn-primary" style="padding:10px 18px; font-size:13px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" x2="12" y1="3" y2="15"></line>
+          </svg>
+          CSV-Datei auswählen
+        </button>
+      </div>
+
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:left; font-size:12px; max-width:540px; margin:0 auto;">
+        <div style="font-weight:700; color:#334155; margin-bottom:4px;">Erwartete CSV-Spalten:</div>
+        <div style="font-family:monospace; font-size:11px; color:#475569; word-break:break-all;">
+          studentId, name, klasse, klasseId, absentMins, absentMinsNotExcused, absentHours, absentHoursNotExcused
+        </div>
+      </div>
+    </div>
     
     <!-- Threshold Panel -->
     <div id="threshold-panel">
@@ -604,143 +689,146 @@
       </div>
     </div>
 
-    <!-- KPI Cards -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-icon" style="background:#eff6ff; color:#2563eb;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-          </svg>
+    <!-- Active Dashboard Sections (Hidden when empty) -->
+    <div id="dashboard-content" style="display: flex; flex-direction: column; gap: 24px;">
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#eff6ff; color:#2563eb;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="kpi-title">Schüler Gesamt</div>
+            <div class="kpi-value" id="kpi-students">0</div>
+            <div class="kpi-sub">Im Datensatz</div>
+          </div>
         </div>
-        <div>
-          <div class="kpi-title">Schüler Gesamt</div>
-          <div class="kpi-value" id="kpi-students">0</div>
-          <div class="kpi-sub">Im Datensatz</div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#eef2ff; color:#4f46e5;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+          <div>
+            <div class="kpi-title">Fehlstunden</div>
+            <div class="kpi-value" id="kpi-hours">0 <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span></div>
+            <div class="kpi-sub" id="kpi-avg-hours">Ø 0 h / Schüler</div>
+          </div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-icon" style="background:#fffbeb; color:#d97706;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <div>
+            <div class="kpi-title">Unentschuldigt</div>
+            <div class="kpi-value" style="color:#d97706;" id="kpi-unexcused">0 <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span></div>
+            <div class="kpi-sub" id="kpi-unexcused-rate" style="color:#b45309; font-weight:600;">0% Quote</div>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-critical" id="kpi-card-critical" title="Klicken, um nur kritische Fälle anzuzeigen">
+          <div class="kpi-icon" style="background:#dc2626; color:white;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div>
+            <div class="kpi-title" style="color:#b91c1c;">Kritische Fälle</div>
+            <div class="kpi-value" style="color:#7f1d1d;" id="kpi-critical-count">0</div>
+            <div class="kpi-sub" style="color:#b91c1c; font-weight:600;">Sofortige Prüfung</div>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-warning" id="kpi-card-warning" title="Klicken, um nur auffällige Fälle anzuzeigen">
+          <div class="kpi-icon" style="background:#f59e0b; color:white;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+              <line x1="12" y1="9" x2="12" y2="13"></line>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <div>
+            <div class="kpi-title" style="color:#92400e;">Auffällig</div>
+            <div class="kpi-value" style="color:#78350f;" id="kpi-warning-count">0</div>
+            <div class="kpi-sub" style="color:#92400e; font-weight:600;">Beobachtung nötig</div>
+          </div>
         </div>
       </div>
 
-      <div class="kpi-card">
-        <div class="kpi-icon" style="background:#eef2ff; color:#4f46e5;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
+      <!-- Class Comparison Section -->
+      <div class="section-card">
+        <div class="section-header">
+          <div>
+            <h2>Klassen-Vergleich & Risikoeinstufung</h2>
+            <p style="font-size:12px; color:var(--text-muted);">Klicke auf eine Klasse, um die Schülerliste unten zu filtern</p>
+          </div>
         </div>
-        <div>
-          <div class="kpi-title">Fehlstunden</div>
-          <div class="kpi-value" id="kpi-hours">0 <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span></div>
-          <div class="kpi-sub" id="kpi-avg-hours">Ø 0 h / Schüler</div>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-icon" style="background:#fffbeb; color:#d97706;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-        </div>
-        <div>
-          <div class="kpi-title">Unentschuldigt</div>
-          <div class="kpi-value" style="color:#d97706;" id="kpi-unexcused">0 <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span></div>
-          <div class="kpi-sub" id="kpi-unexcused-rate" style="color:#b45309; font-weight:600;">0% Quote</div>
+        <div class="classes-grid" id="classes-container">
+          <!-- Dynamically rendered -->
         </div>
       </div>
 
-      <div class="kpi-card kpi-critical" id="kpi-card-critical" title="Klicken, um nur kritische Fälle anzuzeigen">
-        <div class="kpi-icon" style="background:#dc2626; color:white;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-        </div>
-        <div>
-          <div class="kpi-title" style="color:#b91c1c;">Kritische Fälle</div>
-          <div class="kpi-value" style="color:#7f1d1d;" id="kpi-critical-count">0</div>
-          <div class="kpi-sub" style="color:#b91c1c; font-weight:600;">Sofortige Prüfung</div>
-        </div>
-      </div>
+      <!-- Student Table Section -->
+      <div class="section-card" style="padding:0; overflow:hidden;">
+        <div style="padding: 16px 20px;">
+          <div class="table-controls">
+            <div class="filters-group">
+              <input type="text" id="student-search" class="search-input" placeholder="Schüler suchen (Name, ID)...">
+              <select id="class-select" class="select-input">
+                <option value="">Alle Klassen</option>
+              </select>
+              <div class="status-tabs">
+                <button class="tab-btn active" data-status="all">Alle</button>
+                <button class="tab-btn tab-btn-critical" data-status="critical">🔴 Kritisch</button>
+                <button class="tab-btn tab-btn-warning" data-status="warning">🟡 Auffällig</button>
+                <button class="tab-btn tab-btn-normal" data-status="normal">🟢 Normal</button>
+              </div>
+            </div>
 
-      <div class="kpi-card kpi-warning" id="kpi-card-warning" title="Klicken, um nur auffällige Fälle anzuzeigen">
-        <div class="kpi-icon" style="background:#f59e0b; color:white;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
-            <line x1="12" y1="9" x2="12" y2="13"></line>
-            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-          </svg>
-        </div>
-        <div>
-          <div class="kpi-title" style="color:#92400e;">Auffällig</div>
-          <div class="kpi-value" style="color:#78350f;" id="kpi-warning-count">0</div>
-          <div class="kpi-sub" style="color:#92400e; font-weight:600;">Beobachtung nötig</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Class Comparison Section -->
-    <div class="section-card">
-      <div class="section-header">
-        <div>
-          <h2>Klassen-Vergleich & Risikoeinstufung</h2>
-          <p style="font-size:12px; color:var(--text-muted);">Klicke auf eine Klasse, um die Schülerliste unten zu filtern</p>
-        </div>
-      </div>
-      <div class="classes-grid" id="classes-container">
-        <!-- Dynamically rendered -->
-      </div>
-    </div>
-
-    <!-- Student Table Section -->
-    <div class="section-card" style="padding:0; overflow:hidden;">
-      <div style="padding: 16px 20px;">
-        <div class="table-controls">
-          <div class="filters-group">
-            <input type="text" id="student-search" class="search-input" placeholder="Schüler suchen (Name, ID)...">
-            <select id="class-select" class="select-input">
-              <option value="">Alle Klassen</option>
-            </select>
-            <div class="status-tabs">
-              <button class="tab-btn active" data-status="all">Alle</button>
-              <button class="tab-btn tab-btn-critical" data-status="critical">🔴 Kritisch</button>
-              <button class="tab-btn tab-btn-warning" data-status="warning">🟡 Auffällig</button>
-              <button class="tab-btn tab-btn-normal" data-status="normal">🟢 Normal</button>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span id="filtered-count" style="font-size:12px; color:#64748b; font-weight:500;">0 Schüler</span>
+              <button id="export-csv-btn" class="btn btn-secondary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" x2="12" y1="15" y2="3"></line>
+                </svg>
+                CSV Export
+              </button>
             </div>
           </div>
 
-          <div style="display:flex; align-items:center; gap:12px;">
-            <span id="filtered-count" style="font-size:12px; color:#64748b; font-weight:500;">0 Schüler</span>
-            <button id="export-csv-btn" class="btn btn-secondary">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" x2="12" y1="15" y2="3"></line>
-              </svg>
-              CSV Export
-            </button>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th data-sort="name">Name / ID ↕</th>
+                  <th data-sort="klasse">Klasse ↕</th>
+                  <th data-sort="absentHours">Fehlzeit Gesamt ↕</th>
+                  <th data-sort="absentHoursNotExcused">Unentschuldigt ↕</th>
+                  <th data-sort="unexcusedPercentage">Quote (%) ↕</th>
+                  <th>Status & Auffälligkeiten</th>
+                </tr>
+              </thead>
+              <tbody id="students-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
           </div>
-        </div>
-
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th data-sort="name">Name / ID ↕</th>
-                <th data-sort="klasse">Klasse ↕</th>
-                <th data-sort="absentHours">Fehlzeit Gesamt ↕</th>
-                <th data-sort="absentHoursNotExcused">Unentschuldigt ↕</th>
-                <th data-sort="unexcusedPercentage">Quote (%) ↕</th>
-                <th>Status & Auffälligkeiten</th>
-              </tr>
-            </thead>
-            <tbody id="students-tbody">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
         </div>
       </div>
     </div>
@@ -847,35 +935,7 @@
   </div>
 
   <script>
-    // --- 1. SAMPLE DATASET (REALISTIC SCHOOL DATA) ---
-    const SAMPLE_CSV = `studentId,name,klasse,klasseId,absentMins,absentMinsNotExcused,absentHours,absentHoursNotExcused
-S1001,Maximilian Schmidt,9a,K09A,1800,720,30,12
-S1002,Sophie Weber,9a,K09A,450,90,7.5,1.5
-S1003,Leon Fischer,9a,K09A,2250,900,37.5,15
-S1004,Mia Wagner,9a,K09A,180,0,3,0
-S1005,Lukas Becker,9a,K09A,1350,360,22.5,6
-S1006,Emma Hoffmann,9b,K09B,360,0,6,0
-S1007,Elias Schafer,9b,K09B,1620,540,27,9
-S1008,Hannah Koch,9b,K09B,270,0,4.5,0
-S1009,Jonas Bauer,9b,K09B,2160,810,36,13.5
-S1010,Lea Richter,9b,K09B,540,90,9,1.5
-S1011,Noah Klein,10a,K10A,90,0,1.5,0
-S1012,Emily Wolf,10a,K10A,1800,270,30,4.5
-S1013,Paul Schroder,10a,K10A,2700,1080,45,18
-S1014,Marie Neumann,10a,K10A,450,0,7.5,0
-S1015,Felix Schwarz,10a,K10A,1260,360,21,6
-S1016,Lina Zimmermann,10b,K10B,180,0,3,0
-S1017,Ben Braun,10b,K10B,450,0,7.5,0
-S1018,Laura Kruger,10b,K10B,360,90,6,1.5
-S1019,Tim Hartmann,10b,K10B,630,0,10.5,0
-S1020,Anna Lange,10b,K10B,270,0,4.5,0
-S1021,David Werner,8a,K08A,1980,630,33,10.5
-S1022,Clara Krause,8a,K08A,540,0,9,0
-S1023,Moritz Meier,8a,K08A,1440,360,24,6
-S1024,Sarah Lehmann,8a,K08A,180,0,3,0
-S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
-
-    // --- 2. STATE ---
+    // --- 1. STATE ---
     let state = {
       rawStudents: [],
       analyzedStudents: [],
@@ -893,16 +953,29 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
         absentHoursWarning: 20,
         unexcusedRateCritical: 30
       },
-      currentFileName: 'sample_fehlzeiten.csv'
+      currentFileName: ''
     };
 
-    // --- 3. ROBUST CSV PARSER ---
+    // Candidate file names to look for in the folder
+    const CANDIDATE_FILES = [
+      'fehlzeiten.csv',
+      'schueler.csv',
+      'schueler-fehlzeiten.csv',
+      'schueler_fehlzeiten.csv',
+      'fehlzeiten_schueler.csv',
+      'fehlzeiten_2026.csv',
+      'daten.csv',
+      'export.csv',
+      'data.csv'
+    ];
+
+    // --- 2. ROBUST CSV PARSER ---
     function parseCsvString(csvText) {
       if (csvText.charCodeAt(0) === 0xFEFF) {
         csvText = csvText.slice(1);
       }
       const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-      if (lines.length < 2) throw new Error('CSV-Datei enthält keine Datensätze.');
+      if (lines.length < 2) throw new Error('CSV-Datei enthält keine ausreichenden Datenzeilen.');
 
       // Delimiter detection
       const firstLine = lines[0];
@@ -960,10 +1033,14 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
         });
       }
 
+      if (students.length === 0) {
+        throw new Error('Keine gültigen Schüler-Datensätze gefunden.');
+      }
+
       return students;
     }
 
-    // --- 4. STATISTICAL & ANOMALY ANALYZER ---
+    // --- 3. STATISTICAL & ANOMALY ANALYZER ---
     function round(num, decimals = 1) {
       const f = Math.pow(10, decimals);
       return Math.round((num + Number.EPSILON) * f) / f;
@@ -1003,7 +1080,6 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
     function runFullAnalysis(rawStudents, thresholds) {
       const analyzed = rawStudents.map(s => analyzeStudent(s, thresholds));
       
-      // Calculate KPIs
       let totalAbsentHours = 0, totalUnexcusedHours = 0;
       let critCount = 0, warnCount = 0, normCount = 0;
       
@@ -1068,8 +1144,24 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
       return { analyzedStudents: analyzed, classes, kpis };
     }
 
-    // --- 5. RENDER FUNCTIONS ---
+    // --- 4. RENDER FUNCTIONS ---
     function renderDashboard() {
+      const hasData = state.rawStudents && state.rawStudents.length > 0;
+      const emptyState = document.getElementById('empty-state');
+      const dashboardContent = document.getElementById('dashboard-content');
+      const fileMeta = document.getElementById('file-meta');
+
+      if (!hasData) {
+        emptyState.style.display = 'block';
+        dashboardContent.style.display = 'none';
+        fileMeta.style.display = 'none';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      dashboardContent.style.display = 'flex';
+      fileMeta.style.display = 'inline-flex';
+
       // KPIs
       document.getElementById('kpi-students').textContent = state.kpis.totalStudents;
       document.getElementById('kpi-hours').innerHTML = `${state.kpis.totalAbsentHours} <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span>`;
@@ -1080,8 +1172,7 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
       document.getElementById('kpi-warning-count').textContent = state.kpis.warningStudentsCount;
 
       // File Meta Badge
-      document.getElementById('file-meta').style.display = 'inline-flex';
-      document.getElementById('file-name-text').textContent = state.currentFileName;
+      document.getElementById('file-name-text').textContent = state.currentFileName || 'Fehlzeiten.csv';
       document.getElementById('file-count-text').textContent = `${state.kpis.totalStudents} Schüler`;
 
       // Classes
@@ -1158,7 +1249,6 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
       const tbody = document.getElementById('students-tbody');
       tbody.innerHTML = '';
 
-      // Filter
       let list = state.analyzedStudents.filter(s => {
         if (state.selectedClass && s.klasse !== state.selectedClass) return false;
         if (state.statusFilter !== 'all' && s.status !== state.statusFilter) return false;
@@ -1172,7 +1262,6 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
         return true;
       });
 
-      // Sort
       list.sort((a, b) => {
         let valA = a[state.sortField];
         let valB = b[state.sortField];
@@ -1246,7 +1335,7 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
       });
     }
 
-    // --- 6. STUDENT DETAIL MODAL ---
+    // --- 5. STUDENT DETAIL MODAL ---
     function openStudentModal(student) {
       document.getElementById('modal-student-id').textContent = `ID: ${student.studentId}`;
       document.getElementById('modal-student-name').textContent = student.name;
@@ -1286,7 +1375,6 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
         descEl.textContent = 'Fehlzeiten liegen im unauffälligen Bereich';
       }
 
-      // Risk factors list
       const riskList = document.getElementById('modal-risk-list');
       riskList.innerHTML = '';
       if (student.riskFactors.length === 0) {
@@ -1300,7 +1388,6 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
         });
       }
 
-      // Action checklist
       const actionsList = document.getElementById('modal-actions-list');
       actionsList.innerHTML = '';
       if (student.status === 'critical') {
@@ -1321,7 +1408,7 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
       document.getElementById('detail-modal').style.display = 'flex';
     }
 
-    // --- 7. EXPORT FILTERED CSV ---
+    // --- 6. EXPORT FILTERED CSV ---
     function exportFilteredCsv() {
       let list = state.analyzedStudents.filter(s => {
         if (state.selectedClass && s.klasse !== state.selectedClass) return false;
@@ -1364,19 +1451,47 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
       document.body.removeChild(link);
     }
 
-    // --- 8. INITIALIZATION & EVENT LISTENERS ---
-    function loadCsvData(csvText, fileName = 'upload.csv') {
+    // --- 7. NOTIFICATION SYSTEM ---
+    function showNotification(msg) {
+      const banner = document.getElementById('notification-banner');
+      document.getElementById('notification-text').textContent = msg;
+      banner.style.display = 'flex';
+    }
+
+    // --- 8. DATA LOADING & STORAGE ---
+    function loadCsvData(csvText, fileName = 'upload.csv', isAutoLoaded = false) {
       try {
         const students = parseCsvString(csvText);
         state.rawStudents = students;
         state.currentFileName = fileName;
+
+        // Persist in localStorage so subsequent loads can remember the file
+        try {
+          localStorage.setItem('sf_last_csv_text', csvText);
+          localStorage.setItem('sf_last_csv_name', fileName);
+        } catch (e) {
+          console.warn('LocalStorage voll oder gesperrt:', e);
+        }
+
         recalculateAndRender();
+
+        if (isAutoLoaded) {
+          showNotification(`✓ CSV-Datei "${fileName}" (${students.length} Schüler) automatisch geladen.`);
+        }
       } catch (err) {
-        alert('Fehler beim Verarbeiten der CSV: ' + err.message);
+        if (!isAutoLoaded) {
+          alert('Fehler beim Verarbeiten der CSV: ' + err.message);
+        } else {
+          console.warn('Auto-Load fehlgeschlagen für ' + fileName + ':', err);
+        }
       }
     }
 
     function recalculateAndRender() {
+      if (!state.rawStudents || state.rawStudents.length === 0) {
+        renderDashboard();
+        return;
+      }
       const res = runFullAnalysis(state.rawStudents, state.thresholds);
       state.analyzedStudents = res.analyzedStudents;
       state.classes = res.classes;
@@ -1384,16 +1499,107 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
       renderDashboard();
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // 1. Initial Load Demo
-      loadCsvData(SAMPLE_CSV, 'sample_fehlzeiten.csv');
+    // --- 9. AUTOMATIC CSV DETECTION IN FOLDER ---
+    async function tryAutoDetectCsv() {
+      // 1. Try to fetch candidate files in current folder
+      for (const fileName of CANDIDATE_FILES) {
+        try {
+          const response = await fetch(fileName + '?t=' + Date.now(), { cache: 'no-cache' });
+          if (response.ok) {
+            const text = await response.text();
+            // Verify it has CSV content
+            if (text && (text.includes('student') || text.includes('klasse') || text.includes('name') || text.includes(','))) {
+              loadCsvData(text, fileName, true);
+              return true;
+            }
+          }
+        } catch (e) {
+          // fetch on file:// or 404
+        }
+      }
 
-      // 2. Demo Button
-      document.getElementById('load-demo-btn').addEventListener('click', () => {
-        loadCsvData(SAMPLE_CSV, 'sample_fehlzeiten.csv');
+      // 2. Check localStorage cache as secondary auto-detection
+      try {
+        const cachedText = localStorage.getItem('sf_last_csv_text');
+        const cachedName = localStorage.getItem('sf_last_csv_name');
+        if (cachedText && cachedName) {
+          loadCsvData(cachedText, cachedName, true);
+          return true;
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+
+      // If nothing found, render empty state
+      renderDashboard();
+      return false;
+    }
+
+    // Directory Picker Scan (Native File System Access API)
+    async function scanLocalDirectory() {
+      if (!('showDirectoryPicker' in window)) {
+        document.getElementById('file-input').click();
+        return;
+      }
+
+      try {
+        const dirHandle = await window.showDirectoryPicker();
+        let foundCsv = null;
+        let foundName = '';
+
+        for await (const entry of dirHandle.values()) {
+          if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.csv')) {
+            const file = await entry.getFile();
+            const text = await file.text();
+            foundCsv = text;
+            foundName = entry.name;
+            break; // take first detected csv
+          }
+        }
+
+        if (foundCsv) {
+          loadCsvData(foundCsv, foundName, false);
+          showNotification(`✓ Datei "${foundName}" im Ordner gefunden und geladen.`);
+        } else {
+          alert('Keine .csv-Datei im ausgewählten Ordner gefunden.');
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Ordner-Scan Fehler:', err);
+          document.getElementById('file-input').click();
+        }
+      }
+    }
+
+    // --- 10. INITIALIZATION & EVENT LISTENERS ---
+    document.addEventListener('DOMContentLoaded', () => {
+      // Auto-detect CSV in folder on startup
+      tryAutoDetectCsv();
+
+      // Scan Folder Buttons
+      document.getElementById('scan-folder-btn').addEventListener('click', scanLocalDirectory);
+      document.getElementById('empty-scan-btn').addEventListener('click', scanLocalDirectory);
+
+      // Upload Buttons
+      const uploadModal = document.getElementById('upload-modal');
+      const openUploadBtn = document.getElementById('open-upload-btn');
+      const emptyUploadBtn = document.getElementById('empty-upload-btn');
+      const closeUploadBtn = document.getElementById('close-upload-btn');
+      const cancelUploadBtn = document.getElementById('cancel-upload-btn');
+      const dropzone = document.getElementById('dropzone');
+      const fileInput = document.getElementById('file-input');
+
+      openUploadBtn.addEventListener('click', () => uploadModal.style.display = 'flex');
+      emptyUploadBtn.addEventListener('click', () => fileInput.click());
+      closeUploadBtn.addEventListener('click', () => uploadModal.style.display = 'none');
+      cancelUploadBtn.addEventListener('click', () => uploadModal.style.display = 'none');
+
+      // Notification Banner Close
+      document.getElementById('close-notification-btn').addEventListener('click', () => {
+        document.getElementById('notification-banner').style.display = 'none';
       });
 
-      // 3. Threshold Toggle & Settings
+      // Threshold Toggle & Settings
       const panel = document.getElementById('threshold-panel');
       document.getElementById('toggle-threshold-btn').addEventListener('click', () => {
         panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
@@ -1424,7 +1630,7 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
         recalculateAndRender();
       });
 
-      // 4. Quick Filter via KPI Cards
+      // Quick Filter via KPI Cards
       document.getElementById('kpi-card-critical').addEventListener('click', () => {
         state.statusFilter = state.statusFilter === 'critical' ? 'all' : 'critical';
         updateStatusTabs();
@@ -1436,7 +1642,7 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
         renderTable();
       });
 
-      // 5. Search & Filters
+      // Search & Filters
       document.getElementById('student-search').addEventListener('input', (e) => {
         state.searchTerm = e.target.value;
         renderTable();
@@ -1448,7 +1654,6 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
         renderTable();
       });
 
-      // Status Tabs
       function updateStatusTabs() {
         document.querySelectorAll('.tab-btn').forEach(btn => {
           if (btn.dataset.status === state.statusFilter) btn.classList.add('active');
@@ -1478,21 +1683,10 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
         });
       });
 
-      // 6. CSV Export
+      // CSV Export
       document.getElementById('export-csv-btn').addEventListener('click', exportFilteredCsv);
 
-      // 7. Modals
-      const uploadModal = document.getElementById('upload-modal');
-      const openUploadBtn = document.getElementById('open-upload-btn');
-      const closeUploadBtn = document.getElementById('close-upload-btn');
-      const cancelUploadBtn = document.getElementById('cancel-upload-btn');
-      const dropzone = document.getElementById('dropzone');
-      const fileInput = document.getElementById('file-input');
-
-      openUploadBtn.addEventListener('click', () => uploadModal.style.display = 'flex');
-      closeUploadBtn.addEventListener('click', () => uploadModal.style.display = 'none');
-      cancelUploadBtn.addEventListener('click', () => uploadModal.style.display = 'none');
-
+      // Drag & Drop
       dropzone.addEventListener('click', () => fileInput.click());
       dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
       dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
@@ -1513,7 +1707,7 @@ S1025,Jan Huber,8a,K08A,90,0,1.5,0`;
       function handleFile(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          loadCsvData(e.target.result, file.name);
+          loadCsvData(e.target.result, file.name, false);
           uploadModal.style.display = 'none';
         };
         reader.readAsText(file);
