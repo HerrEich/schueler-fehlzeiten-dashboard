@@ -30,6 +30,9 @@ Analyse-Dashboard für die Schulverwaltung zur schnellen Erkennung auffälliger 
   - Verspätungsminuten = Spalte „davon unent.“ unter „Fehlmin.“.
   - KPIs, Klassen-Vergleich, Auswertung nach Fächern (inkl. Lehrkräfte), Schülerliste mit Filtern, Detailansicht pro Fach und CSV-Export.
   - Anpassbare Grenzwerte (Standard: auffällig ab 45 Min, kritisch ab 90 Min).
+  - Zeitraum der Daten: wird aus der Titelzeile der CSV erkannt oder manuell eingetragen.
+  - Druckansicht mit Auswahl der Bereiche (Klassen, Fächer, Schüler).
+  - Auch als eigenständiges Programm: **`verspätungen.html`** (nur Verspätungen, eigener Import, Button „Daten entfernen“).
 
 ---
 

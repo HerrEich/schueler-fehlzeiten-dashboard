@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Schul-Fehlzeiten Dashboard</title>
+  <title>Verspätungen Dashboard</title>
   <style>
     :root {
       --bg: #f8fafc;
@@ -665,37 +665,27 @@
     }
   </style>
 </head>
-<body>
+<body data-view="late">
 
   <!-- Header -->
   <header>
     <div class="header-inner">
       <div class="brand">
-        <div class="brand-icon">
-          <!-- School Icon SVG -->
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4"></path>
-            <path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2"></path>
-            <path d="M18 5v17"></path>
-            <path d="m4 6 8-4 8 4"></path>
-            <path d="M6 5v17"></path>
-            <circle cx="12" cy="9" r="2"></circle>
+        <div class="brand-icon" style="background:#7c3aed;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
           </svg>
         </div>
         <div>
-          <h1>Schul-Fehlzeiten Dashboard</h1>
-          <p>Schulverwaltung & Früherkennung auffälliger Fehlzeiten</p>
+          <h1>Verspätungen Dashboard</h1>
+          <p>Schulverwaltung • Auswertung der Verspätungsminuten</p>
         </div>
-      </div>
-
-      <div class="view-switch">
-        <button class="view-btn active" data-view="absences">Fehlzeiten</button>
-        <button class="view-btn" data-view="late">Verspätungen</button>
       </div>
 
       <div class="actions">
         <div id="file-meta" class="file-badge" style="display: none;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2">
             <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
             <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
           </svg>
@@ -717,7 +707,6 @@
         <button id="scan-folder-btn" class="btn btn-emerald" title="Lokalen Ordner nach CSV-Dateien durchsuchen">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
-            <circle cx="12" cy="13" r="2"></circle>
           </svg>
           Ordner scannen
         </button>
@@ -730,6 +719,8 @@
           </svg>
           CSV Auswählen
         </button>
+
+        <button id="clear-data-btn" class="btn btn-secondary" title="Gespeicherte Daten aus diesem Browser entfernen">Daten entfernen</button>
       </div>
     </div>
   </header>
@@ -746,229 +737,8 @@
       <button id="close-notification-btn" style="border:none; background:none; cursor:pointer; font-size:16px; color:#1e40af;">✕</button>
     </div>
 
-    <!-- ===== VIEW: FEHLZEITEN ===== -->
-    <div id="view-absences" class="view-panel">
-
-    <!-- Empty State (Shown when no CSV is present) -->
-    <div id="empty-state">
-      <div class="empty-state-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
-          <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
-        </svg>
-      </div>
-      <h2 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:6px;">Keine Fehlzeiten-Daten geladen</h2>
-      <p style="font-size:13px; color:#64748b; max-width:480px; margin:0 auto 20px;">
-        Lege eine CSV-Datei (z. B. <code>fehlzeiten.csv</code>) in diesen Ordner oder wähle sie direkt aus.
-      </p>
-
-      <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:24px;">
-        <button id="empty-scan-btn" class="btn btn-emerald" style="padding:10px 18px; font-size:13px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
-          </svg>
-          Ordner öffnen & CSV laden
-        </button>
-        <button id="empty-upload-btn" class="btn btn-primary" style="padding:10px 18px; font-size:13px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="17 8 12 3 7 8"></polyline>
-            <line x1="12" x2="12" y1="3" y2="15"></line>
-          </svg>
-          CSV-Datei auswählen
-        </button>
-      </div>
-
-      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:left; font-size:12px; max-width:540px; margin:0 auto;">
-        <div style="font-weight:700; color:#334155; margin-bottom:4px;">Erwartete CSV-Spalten:</div>
-        <div style="font-family:monospace; font-size:11px; color:#475569; word-break:break-all;">
-          studentId, name, klasse, klasseId, absentMins, absentMinsNotExcused, absentHours, absentHoursNotExcused
-        </div>
-      </div>
-    </div>
-    
-    <!-- Threshold Panel -->
-    <div id="threshold-panel">
-      <div class="threshold-header">
-        <h3>Schwellenwerte für Auffälligkeiten (Schulverwaltung)</h3>
-        <div style="display:flex; gap:8px;">
-          <button id="reset-thresholds-btn" class="btn btn-secondary" style="padding:4px 8px; font-size:11px;">Standard</button>
-          <button id="apply-thresholds-btn" class="btn btn-primary" style="padding:4px 10px; font-size:11px;">Neu berechnen</button>
-        </div>
-      </div>
-      <div class="threshold-grid">
-        <div class="threshold-item">
-          <label>🔴 Kritisch unentschuldigt (Std)</label>
-          <input type="number" id="th-unex-crit" min="1" max="100" value="10">
-        </div>
-        <div class="threshold-item">
-          <label>🟡 Auffällig unentschuldigt (Std)</label>
-          <input type="number" id="th-unex-warn" min="1" max="100" value="4">
-        </div>
-        <div class="threshold-item">
-          <label>🔴 Kritisch Gesamtstunden</label>
-          <input type="number" id="th-tot-crit" min="1" max="200" value="35">
-        </div>
-        <div class="threshold-item">
-          <label>🟡 Auffällig Gesamtstunden</label>
-          <input type="number" id="th-tot-warn" min="1" max="200" value="20">
-        </div>
-        <div class="threshold-item">
-          <label>🔴 Quote unentschuldigt (%)</label>
-          <input type="number" id="th-rate-crit" min="5" max="100" value="30">
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Dashboard Sections (Hidden when empty) -->
-    <div id="dashboard-content" style="display: flex; flex-direction: column; gap: 24px;">
-      <!-- KPI Cards -->
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-icon" style="background:#eff6ff; color:#2563eb;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-              <circle cx="9" cy="7" r="4"></circle>
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-            </svg>
-          </div>
-          <div>
-            <div class="kpi-title">Schüler Gesamt</div>
-            <div class="kpi-value" id="kpi-students">0</div>
-            <div class="kpi-sub">Im Datensatz</div>
-          </div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-icon" style="background:#eef2ff; color:#4f46e5;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </div>
-          <div>
-            <div class="kpi-title">Fehlstunden</div>
-            <div class="kpi-value" id="kpi-hours">0 <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span></div>
-            <div class="kpi-sub" id="kpi-avg-hours">Ø 0 h / Schüler</div>
-          </div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-icon" style="background:#fffbeb; color:#d97706;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-          </div>
-          <div>
-            <div class="kpi-title">Unentschuldigt</div>
-            <div class="kpi-value" style="color:#d97706;" id="kpi-unexcused">0 <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span></div>
-            <div class="kpi-sub" id="kpi-unexcused-rate" style="color:#b45309; font-weight:600;">0% Quote</div>
-          </div>
-        </div>
-
-        <div class="kpi-card kpi-critical" id="kpi-card-critical" title="Klicken, um nur kritische Fälle anzuzeigen">
-          <div class="kpi-icon" style="background:#dc2626; color:white;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-          </div>
-          <div>
-            <div class="kpi-title" style="color:#b91c1c;">Kritische Fälle</div>
-            <div class="kpi-value" style="color:#7f1d1d;" id="kpi-critical-count">0</div>
-            <div class="kpi-sub" style="color:#b91c1c; font-weight:600;">Sofortige Prüfung</div>
-          </div>
-        </div>
-
-        <div class="kpi-card kpi-warning" id="kpi-card-warning" title="Klicken, um nur auffällige Fälle anzuzeigen">
-          <div class="kpi-icon" style="background:#f59e0b; color:white;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
-              <line x1="12" y1="9" x2="12" y2="13"></line>
-              <line x1="12" y1="17" x2="12.01" y2="17"></line>
-            </svg>
-          </div>
-          <div>
-            <div class="kpi-title" style="color:#92400e;">Auffällig</div>
-            <div class="kpi-value" style="color:#78350f;" id="kpi-warning-count">0</div>
-            <div class="kpi-sub" style="color:#92400e; font-weight:600;">Beobachtung nötig</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Class Comparison Section -->
-      <div class="section-card">
-        <div class="section-header">
-          <div>
-            <h2>Klassen-Vergleich & Risikoeinstufung</h2>
-            <p style="font-size:12px; color:var(--text-muted);">Klicke auf eine Klasse, um die Schülerliste unten zu filtern</p>
-          </div>
-        </div>
-        <div class="classes-grid" id="classes-container">
-          <!-- Dynamically rendered -->
-        </div>
-      </div>
-
-      <!-- Student Table Section -->
-      <div class="section-card" style="padding:0; overflow:hidden;">
-        <div style="padding: 16px 20px;">
-          <div class="table-controls">
-            <div class="filters-group">
-              <input type="text" id="student-search" class="search-input" placeholder="Schüler suchen (Name, ID)...">
-              <select id="class-select" class="select-input">
-                <option value="">Alle Klassen</option>
-              </select>
-              <div class="status-tabs">
-                <button class="tab-btn active" data-status="all">Alle</button>
-                <button class="tab-btn tab-btn-critical" data-status="critical">🔴 Kritisch</button>
-                <button class="tab-btn tab-btn-warning" data-status="warning">🟡 Auffällig</button>
-                <button class="tab-btn tab-btn-normal" data-status="normal">🟢 Normal</button>
-              </div>
-            </div>
-
-            <div style="display:flex; align-items:center; gap:12px;">
-              <span id="filtered-count" style="font-size:12px; color:#64748b; font-weight:500;">0 Schüler</span>
-              <button id="export-csv-btn" class="btn btn-secondary">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" x2="12" y1="15" y2="3"></line>
-                </svg>
-                CSV Export
-              </button>
-            </div>
-          </div>
-
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th data-sort="name">Name / ID ↕</th>
-                  <th data-sort="klasse">Klasse ↕</th>
-                  <th data-sort="absentHours">Fehlzeit Gesamt ↕</th>
-                  <th data-sort="absentHoursNotExcused">Unentschuldigt ↕</th>
-                  <th data-sort="unexcusedPercentage">Quote (%) ↕</th>
-                  <th>Status & Auffälligkeiten</th>
-                </tr>
-              </thead>
-              <tbody id="students-tbody">
-                <!-- Dynamically populated -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    </div>
-    <!-- ===== END VIEW: FEHLZEITEN ===== -->
-
     <!-- ===== VIEW: VERSPÄTUNGEN ===== -->
-    <div id="view-late" class="view-panel" style="display:none;">
+    <div id="view-late" class="view-panel">
 
       <!-- Empty State -->
       <div id="late-empty-state">
@@ -980,7 +750,7 @@
         </div>
         <h2 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:6px;">Keine Verspätungs-Daten geladen</h2>
         <p style="font-size:13px; color:#64748b; max-width:480px; margin:0 auto 20px;">
-          Wähle den Fehlzeiten-Export pro Schüler*in und Fach (z. B. <code>verspaetungen.csv</code>). Das Format wird automatisch erkannt.
+          Wähle den Fehlzeiten-Export pro Schüler*in und Fach (z. B. <code>verspaetungen.csv</code>). Das Trennzeichen wird automatisch erkannt.
         </p>
         <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:24px;">
           <button id="late-empty-upload-btn" class="btn btn-primary" style="padding:10px 18px; font-size:13px;">CSV-Datei auswählen</button>
@@ -1204,102 +974,32 @@
   <div id="upload-modal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <h3 style="font-size:16px; font-weight:700;">CSV Fehlzeiten importieren</h3>
+        <h3 style="font-size:16px; font-weight:700;">CSV Verspätungen importieren</h3>
         <button id="close-upload-btn" style="border:none; background:none; cursor:pointer; font-size:18px; color:#64748b;">✕</button>
       </div>
       <div class="modal-body">
         <div id="dropzone" class="dropzone">
           <input type="file" id="file-input" accept=".csv,text/csv" style="display:none;">
-          <div style="width:44px; height:44px; background:#eff6ff; color:#2563eb; border-radius:10px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;">
+          <div style="width:44px; height:44px; background:#f5f3ff; color:#7c3aed; border-radius:10px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px;">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
               <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
             </svg>
           </div>
           <p style="font-weight:700; font-size:14px; color:#1e293b;">CSV-Datei hierher ziehen oder <span style="color:#2563eb; text-decoration:underline;">auswählen</span></p>
-          <p style="font-size:12px; color:#94a3b8; margin-top:4px;">Erkennt automatisch Komma, Semikolon und Tabulator</p>
+          <p style="font-size:12px; color:#94a3b8; margin-top:4px;">Erkennt automatisch Semikolon, Komma und Tabulator</p>
         </div>
 
         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; font-size:12px;">
           <p style="font-weight:700; margin-bottom:6px; color:#334155;">Erwartete CSV-Spalten:</p>
-          <div style="display:flex; flex-wrap:wrap; gap:4px; font-family:monospace; font-size:11px;">
-            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">studentId</span>
-            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">name</span>
-            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">klasse</span>
-            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">klasseId</span>
-            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">absentMins</span>
-            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">absentMinsNotExcused</span>
-            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">absentHours</span>
-            <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">absentHoursNotExcused</span>
-          </div>
-          <p style="font-weight:700; margin:10px 0 4px; color:#334155;">Oder für Verspätungen (pro Schüler*in &amp; Fach):</p>
           <div style="font-family:monospace; font-size:11px; color:#475569;">
-            Schüler*innen, Externe Id, Klasse, Fach, Lehrkraft, …, Fehlmin., davon unent., …
+            Schüler*innen, Externe Id, Klasse, Fach, Lehrkraft, Unterrichtsstunden, Unterrichtsminuten, Fehlstd., davon unent., zählend, unent. zählend, Fehlmin., <strong style="color:#7c3aed;">davon unent.</strong>, zählend, unent. zählend
           </div>
-          <p style="margin-top:6px; color:#64748b;">Das Format wird automatisch erkannt.</p>
+          <p style="margin-top:6px; color:#64748b;">Verspätungsminuten = Spalte „davon unent.“ nach „Fehlmin.“</p>
         </div>
       </div>
       <div class="modal-footer">
         <button id="cancel-upload-btn" class="btn btn-secondary">Abbrechen</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Student Detail Modal -->
-  <div id="detail-modal" class="modal-overlay">
-    <div class="modal-card">
-      <div class="modal-header">
-        <div>
-          <span id="modal-student-id" style="font-size:11px; font-family:monospace; color:#94a3b8;">ID: S1001</span>
-          <h3 id="modal-student-name" style="font-size:18px; font-weight:800; color:#0f172a;">Max Mustermann</h3>
-          <p id="modal-student-class" style="font-size:12px; font-weight:600; color:#64748b;">Klasse 9a</p>
-        </div>
-        <button id="close-detail-btn" style="border:none; background:none; cursor:pointer; font-size:18px; color:#64748b;">✕</button>
-      </div>
-      <div class="modal-body">
-        
-        <div id="modal-status-badge" style="padding:12px; border-radius:10px; border:1px solid transparent; display:flex; align-items:center; gap:10px;">
-          <div>
-            <div style="font-size:11px; font-weight:700; text-transform:uppercase;" id="modal-status-category">Einstufung</div>
-            <div style="font-size:14px; font-weight:700;" id="modal-status-desc">Status</div>
-          </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
-          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px;">
-            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Gesamt</div>
-            <div style="font-size:18px; font-weight:800; color:#0f172a; margin-top:2px;" id="modal-hours-total">0h</div>
-            <div style="font-size:11px; color:#94a3b8;" id="modal-mins-total">0 Min</div>
-          </div>
-          <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:10px;">
-            <div style="font-size:11px; font-weight:700; color:#b45309; text-transform:uppercase;">Unentschuldigt</div>
-            <div style="font-size:18px; font-weight:800; color:#b45309; margin-top:2px;" id="modal-hours-unex">0h</div>
-            <div style="font-size:11px; color:#d97706;" id="modal-mins-unex">0 Min</div>
-          </div>
-          <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:10px;">
-            <div style="font-size:11px; font-weight:700; color:#15803d; text-transform:uppercase;">Entschuldigt</div>
-            <div style="font-size:18px; font-weight:800; color:#15803d; margin-top:2px;" id="modal-hours-ex">0h</div>
-            <div style="font-size:11px; color:#16a34a;" id="modal-mins-ex">0 Min</div>
-          </div>
-        </div>
-
-        <div>
-          <p style="font-size:12px; font-weight:700; margin-bottom:6px; color:#334155;">Identifizierte Auffälligkeiten:</p>
-          <ul id="modal-risk-list" style="list-style:none; display:flex; flex-direction:column; gap:6px;">
-            <!-- Rendered list items -->
-          </ul>
-        </div>
-
-        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px; font-size:12px; color:#1e40af;">
-          <p style="font-weight:700; margin-bottom:4px; color:#1e3a8a;">Verwaltungs-Checkliste:</p>
-          <ul id="modal-actions-list" style="list-style-type:disc; list-style-position:inside; display:flex; flex-direction:column; gap:3px;">
-            <!-- Rendered actions -->
-          </ul>
-        </div>
-
-      </div>
-      <div class="modal-footer">
-        <button id="close-detail-footer-btn" class="btn btn-dark">Schließen</button>
       </div>
     </div>
   </div>
@@ -1346,523 +1046,13 @@
       </div>
     </div>
   </div>
-
   <script>
-    // --- 1. STATE ---
-    let state = {
-      rawStudents: [],
-      analyzedStudents: [],
-      classes: [],
-      kpis: null,
-      selectedClass: '',
-      statusFilter: 'all',
-      searchTerm: '',
-      sortField: 'absentHoursNotExcused',
-      sortAsc: false,
-      thresholds: {
-        unexcusedHoursCritical: 10,
-        unexcusedHoursWarning: 4,
-        absentHoursCritical: 35,
-        absentHoursWarning: 20,
-        unexcusedRateCritical: 30
-      },
-      currentFileName: ''
-    };
+    // Eigenständiges Verspätungs-Dashboard (Verspätungs-Teil aus index.html)
 
-    // Candidate file names to look for in the folder
-    const CANDIDATE_FILES = [
-      'fehlzeiten.csv',
-      'schueler.csv',
-      'schueler-fehlzeiten.csv',
-      'schueler_fehlzeiten.csv',
-      'fehlzeiten_schueler.csv',
-      'fehlzeiten_2026.csv',
-      'daten.csv',
-      'export.csv',
-      'data.csv',
-      'verspaetungen.csv',
-      'verspätungen.csv',
-      'fehlzeiten_faecher.csv',
-      'fehlzeiten-faecher.csv'
-    ];
-
-    // --- 2. ROBUST CSV PARSER ---
-    function parseCsvString(csvText) {
-      if (csvText.charCodeAt(0) === 0xFEFF) {
-        csvText = csvText.slice(1);
-      }
-      const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
-      if (lines.length < 2) throw new Error('CSV-Datei enthält keine ausreichenden Datenzeilen.');
-
-      // Delimiter detection
-      const firstLine = lines[0];
-      let delimiter = ',';
-      const countComma = (firstLine.match(/,/g) || []).length;
-      const countSemicolon = (firstLine.match(/;/g) || []).length;
-      const countTab = (firstLine.match(/\t/g) || []).length;
-
-      if (countSemicolon > countComma && countSemicolon > countTab) delimiter = ';';
-      else if (countTab > countComma && countTab > countSemicolon) delimiter = '\t';
-
-      // Parse headers
-      const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase().replace(/[^a-z0-9]/g, ''));
-      
-      const colMap = {
-        studentid: 'studentId', id: 'studentId', schuelerid: 'studentId',
-        name: 'name', schueler: 'name',
-        klasse: 'klasse', class: 'klasse',
-        klasseid: 'klasseId', classid: 'klasseId',
-        absentmins: 'absentMins', fehlminuten: 'absentMins',
-        absentminsnotexcused: 'absentMinsNotExcused', fehlminutenunentschuldigt: 'absentMinsNotExcused',
-        absenthours: 'absentHours', fehlstunden: 'absentHours',
-        absenthoursnotexcused: 'absentHoursNotExcused', fehlstundenunentschuldigt: 'absentHoursNotExcused'
-      };
-
-      const normalizedHeaders = headers.map(h => colMap[h] || h);
-
-      const students = [];
-      for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i].split(delimiter).map(p => p.trim().replace(/^["']|["']$/g, ''));
-        if (parts.length === 0 || (parts.length === 1 && parts[0] === '')) continue;
-
-        const row = {};
-        for (let j = 0; j < normalizedHeaders.length; j++) {
-          row[normalizedHeaders[j]] = parts[j] !== undefined ? parts[j] : '';
-        }
-
-        const studentId = row.studentId || `S-${i}`;
-        const name = row.name || 'Unbekannt';
-        const klasse = row.klasse || 'Ohne Klasse';
-        const klasseId = row.klasseId || klasse;
-
-        const absentMins = Math.max(0, parseInt(row.absentMins, 10) || 0);
-        const absentMinsNotExcused = Math.max(0, parseInt(row.absentMinsNotExcused, 10) || 0);
-        let absentHours = Math.max(0, parseFloat(row.absentHours) || 0);
-        let absentHoursNotExcused = Math.max(0, parseFloat(row.absentHoursNotExcused) || 0);
-
-        if (absentHours === 0 && absentMins > 0) absentHours = Math.round((absentMins / 45) * 10) / 10;
-        if (absentHoursNotExcused === 0 && absentMinsNotExcused > 0) absentHoursNotExcused = Math.round((absentMinsNotExcused / 45) * 10) / 10;
-
-        students.push({
-          studentId, name, klasse, klasseId,
-          absentMins, absentMinsNotExcused,
-          absentHours, absentHoursNotExcused
-        });
-      }
-
-      if (students.length === 0) {
-        throw new Error('Keine gültigen Schüler-Datensätze gefunden.');
-      }
-
-      return students;
-    }
-
-    // --- 3. STATISTICAL & ANOMALY ANALYZER ---
+    // --- 1. HELPERS ---
     function round(num, decimals = 1) {
       const f = Math.pow(10, decimals);
       return Math.round((num + Number.EPSILON) * f) / f;
-    }
-
-    function analyzeStudent(student, th) {
-      const { absentHours, absentHoursNotExcused } = student;
-      const unexcusedPercentage = absentHours > 0 ? round((absentHoursNotExcused / absentHours) * 100, 1) : 0;
-      const riskFactors = [];
-      let status = 'normal';
-
-      const isCritUnex = absentHoursNotExcused >= th.unexcusedHoursCritical;
-      const isCritRate = unexcusedPercentage >= th.unexcusedRateCritical && absentHours >= 10;
-      const isCritTotal = absentHours >= th.absentHoursCritical;
-
-      if (isCritUnex) riskFactors.push(`Kritisch: ${absentHoursNotExcused} unentschuldigte Stunden (>= ${th.unexcusedHoursCritical}h)`);
-      if (isCritRate) riskFactors.push(`Kritisch: ${unexcusedPercentage}% unentschuldigt bei ${absentHours} Gesamtstunden`);
-      if (isCritTotal) riskFactors.push(`Kritisch: Extrem hohe Gesamtfehlzeit (${absentHours}h >= ${th.absentHoursCritical}h)`);
-
-      if (isCritUnex || isCritRate || isCritTotal) {
-        status = 'critical';
-      } else {
-        const isWarnUnex = absentHoursNotExcused >= th.unexcusedHoursWarning;
-        const isWarnRate = unexcusedPercentage >= 20 && absentHours >= 6;
-        const isWarnTotal = absentHours >= th.absentHoursWarning;
-
-        if (isWarnUnex) riskFactors.push(`Auffällig: ${absentHoursNotExcused} unentschuldigte Stunden (>= ${th.unexcusedHoursWarning}h)`);
-        if (isWarnRate) riskFactors.push(`Auffällig: ${unexcusedPercentage}% unentschuldigt (>= 20%)`);
-        if (isWarnTotal) riskFactors.push(`Auffällig: Erhöhte Gesamtfehlzeit (${absentHours}h >= ${th.absentHoursWarning}h)`);
-
-        if (isWarnUnex || isWarnRate || isWarnTotal) status = 'warning';
-      }
-
-      return { ...student, unexcusedPercentage, status, riskFactors };
-    }
-
-    function runFullAnalysis(rawStudents, thresholds) {
-      const analyzed = rawStudents.map(s => analyzeStudent(s, thresholds));
-      
-      let totalAbsentHours = 0, totalUnexcusedHours = 0;
-      let critCount = 0, warnCount = 0, normCount = 0;
-      
-      const classMap = new Map();
-
-      for (const s of analyzed) {
-        totalAbsentHours += s.absentHours;
-        totalUnexcusedHours += s.absentHoursNotExcused;
-        if (s.status === 'critical') critCount++;
-        else if (s.status === 'warning') warnCount++;
-        else normCount++;
-
-        const k = s.klasse || 'Unbekannt';
-        if (!classMap.has(k)) {
-          classMap.set(k, { klasse: k, studentCount: 0, totalAbsentHours: 0, totalUnexcusedHours: 0, criticalCount: 0, warningCount: 0, normalCount: 0 });
-        }
-        const c = classMap.get(k);
-        c.studentCount++;
-        c.totalAbsentHours += s.absentHours;
-        c.totalUnexcusedHours += s.absentHoursNotExcused;
-        if (s.status === 'critical') c.criticalCount++;
-        else if (s.status === 'warning') c.warningCount++;
-        else c.normalCount++;
-      }
-
-      const totalStudents = analyzed.length;
-      totalAbsentHours = round(totalAbsentHours, 1);
-      totalUnexcusedHours = round(totalUnexcusedHours, 1);
-      const unexcusedPercentage = totalAbsentHours > 0 ? round((totalUnexcusedHours / totalAbsentHours) * 100, 1) : 0;
-      const avgAbsentHoursPerStudent = totalStudents > 0 ? round(totalAbsentHours / totalStudents, 2) : 0;
-
-      const kpis = {
-        totalStudents, totalAbsentHours, totalUnexcusedHours, unexcusedPercentage, avgAbsentHoursPerStudent,
-        criticalStudentsCount: critCount, warningStudentsCount: warnCount, normalStudentsCount: normCount
-      };
-
-      const classes = [];
-      for (const c of classMap.values()) {
-        const cTotalH = round(c.totalAbsentHours, 1);
-        const cUnexH = round(c.totalUnexcusedHours, 1);
-        const avgH = c.studentCount > 0 ? round(c.totalAbsentHours / c.studentCount, 2) : 0;
-        const unexPct = cTotalH > 0 ? round((cUnexH / cTotalH) * 100, 1) : 0;
-
-        const weightedRiskShare = c.studentCount > 0 ? ((c.criticalCount * 2.5 + c.warningCount * 1.0) / c.studentCount) * 100 : 0;
-        const riskScore = round(Math.min(100, (weightedRiskShare * 0.5) + (unexPct * 0.5)), 1);
-
-        classes.push({
-          klasse: c.klasse,
-          studentCount: c.studentCount,
-          totalAbsentHours: cTotalH,
-          totalUnexcusedHours: cUnexH,
-          avgAbsentHours: avgH,
-          unexcusedPercentage: unexPct,
-          criticalCount: c.criticalCount,
-          warningCount: c.warningCount,
-          riskScore
-        });
-      }
-
-      classes.sort((a, b) => b.riskScore - a.riskScore || b.totalUnexcusedHours - a.totalUnexcusedHours);
-
-      return { analyzedStudents: analyzed, classes, kpis };
-    }
-
-    // --- 4. RENDER FUNCTIONS ---
-    function renderDashboard() {
-      const hasData = state.rawStudents && state.rawStudents.length > 0;
-      const emptyState = document.getElementById('empty-state');
-      const dashboardContent = document.getElementById('dashboard-content');
-
-      if (!hasData) {
-        emptyState.style.display = 'block';
-        dashboardContent.style.display = 'none';
-        updateFileBadge();
-        return;
-      }
-
-      emptyState.style.display = 'none';
-      dashboardContent.style.display = 'flex';
-
-      // KPIs
-      document.getElementById('kpi-students').textContent = state.kpis.totalStudents;
-      document.getElementById('kpi-hours').innerHTML = `${state.kpis.totalAbsentHours} <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span>`;
-      document.getElementById('kpi-avg-hours').textContent = `Ø ${state.kpis.avgAbsentHoursPerStudent} h / Schüler`;
-      document.getElementById('kpi-unexcused').innerHTML = `${state.kpis.totalUnexcusedHours} <span style="font-size:14px; font-weight:500; color:#64748b;">Std</span>`;
-      document.getElementById('kpi-unexcused-rate').textContent = `${state.kpis.unexcusedPercentage}% aller Fehlzeiten`;
-      document.getElementById('kpi-critical-count').textContent = state.kpis.criticalStudentsCount;
-      document.getElementById('kpi-warning-count').textContent = state.kpis.warningStudentsCount;
-
-      // File Meta Badge
-      updateFileBadge();
-
-      // Classes
-      renderClasses();
-
-      // Class Filter Select Dropdown
-      const classSelect = document.getElementById('class-select');
-      const curSelected = state.selectedClass;
-      classSelect.innerHTML = '<option value="">Alle Klassen</option>';
-      state.classes.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.klasse;
-        opt.textContent = `Klasse ${c.klasse} (${c.studentCount})`;
-        if (c.klasse === curSelected) opt.selected = true;
-        classSelect.appendChild(opt);
-      });
-
-      // Table
-      renderTable();
-    }
-
-    function renderClasses() {
-      const container = document.getElementById('classes-container');
-      container.innerHTML = '';
-      const maxHours = Math.max(...state.classes.map(c => c.totalAbsentHours), 1);
-
-      state.classes.forEach(c => {
-        const card = document.createElement('div');
-        const isSelected = state.selectedClass === c.klasse;
-        card.className = `class-card ${isSelected ? 'selected' : ''}`;
-        
-        let scoreClass = 'score-normal';
-        if (c.riskScore >= 60) scoreClass = 'score-critical';
-        else if (c.riskScore >= 35) scoreClass = 'score-warning';
-
-        const barWidth = Math.min(100, Math.round((c.totalAbsentHours / maxHours) * 100));
-        const unexBarWidth = (c.unexcusedPercentage / 100) * barWidth;
-
-        card.innerHTML = `
-          <div class="class-header">
-            <div class="class-title">Klasse ${c.klasse} <span style="font-size:12px; font-weight:500; color:#64748b;">(${c.studentCount} Schüler)</span></div>
-            <span class="score-badge ${scoreClass}">Score: ${c.riskScore}</span>
-          </div>
-          <div style="font-size:12px; color:#475569; display:flex; justify-content:space-between; font-weight:500;">
-            <span>Fehlstunden: <strong>${c.totalAbsentHours}h</strong></span>
-            <span>Unentschuldigt: <strong style="color:#d97706;">${c.totalUnexcusedHours}h</strong> (${c.unexcusedPercentage}%)</span>
-          </div>
-          <div class="progress-bar-container">
-            <div class="bar-total" style="width:${barWidth}%;"></div>
-            <div class="bar-unexcused" style="width:${unexBarWidth}%;"></div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#64748b; padding-top:4px; border-top:1px solid #e2e8f0;">
-            <span>Ø ${c.avgAbsentHours} h/Schüler</span>
-            <div style="display:flex; gap:6px; font-weight:700;">
-              ${c.criticalCount > 0 ? `<span style="color:#dc2626;">🔴 ${c.criticalCount}</span>` : ''}
-              ${c.warningCount > 0 ? `<span style="color:#d97706;">🟡 ${c.warningCount}</span>` : ''}
-              ${c.criticalCount === 0 && c.warningCount === 0 ? `<span style="color:#16a34a;">🟢 Unauffällig</span>` : ''}
-            </div>
-          </div>
-        `;
-
-        card.addEventListener('click', () => {
-          state.selectedClass = isSelected ? '' : c.klasse;
-          document.getElementById('class-select').value = state.selectedClass;
-          renderClasses();
-          renderTable();
-        });
-
-        container.appendChild(card);
-      });
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById('students-tbody');
-      tbody.innerHTML = '';
-
-      let list = state.analyzedStudents.filter(s => {
-        if (state.selectedClass && s.klasse !== state.selectedClass) return false;
-        if (state.statusFilter !== 'all' && s.status !== state.statusFilter) return false;
-        if (state.searchTerm) {
-          const q = state.searchTerm.toLowerCase();
-          const matchName = s.name.toLowerCase().includes(q);
-          const matchId = s.studentId.toString().toLowerCase().includes(q);
-          const matchKlasse = s.klasse.toLowerCase().includes(q);
-          if (!matchName && !matchId && !matchKlasse) return false;
-        }
-        return true;
-      });
-
-      list.sort((a, b) => {
-        let valA = a[state.sortField];
-        let valB = b[state.sortField];
-        if (typeof valA === 'string') {
-          return state.sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-        }
-        return state.sortAsc ? valA - valB : valB - valA;
-      });
-
-      document.getElementById('filtered-count').textContent = `${list.length} von ${state.analyzedStudents.length} Schülern`;
-
-      if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:32px; color:#94a3b8;">Keine Schüler für die gewählten Filter gefunden.</td></tr>';
-        return;
-      }
-
-      list.forEach(s => {
-        const tr = document.createElement('tr');
-        tr.className = 'clickable-row';
-
-        let badgeClass = 'badge-normal';
-        let badgeIcon = '🟢';
-        let badgeText = 'Normal';
-
-        if (s.status === 'critical') {
-          badgeClass = 'badge-critical';
-          badgeIcon = '🔴';
-          badgeText = 'Kritisch';
-        } else if (s.status === 'warning') {
-          badgeClass = 'badge-warning';
-          badgeIcon = '🟡';
-          badgeText = 'Auffällig';
-        }
-
-        const unexBarColor = s.unexcusedPercentage >= 30 ? '#ef4444' : (s.unexcusedPercentage >= 15 ? '#f59e0b' : '#3b82f6');
-
-        tr.innerHTML = `
-          <td>
-            <div style="font-weight:700; color:#0f172a;">${s.name}</div>
-            <div style="font-size:11px; font-family:monospace; color:#94a3b8;">ID: ${s.studentId}</div>
-          </td>
-          <td>
-            <span style="background:#f1f5f9; padding:2px 8px; border-radius:4px; font-weight:700; font-size:11px; color:#334155;">${s.klasse}</span>
-          </td>
-          <td>
-            <div style="font-weight:700; color:#1e293b;">${s.absentHours} Std</div>
-            <div style="font-size:11px; color:#94a3b8;">${s.absentMins} Min</div>
-          </td>
-          <td>
-            <div style="font-weight:700; color:${s.absentHoursNotExcused > 0 ? '#d97706' : '#475569'};">${s.absentHoursNotExcused} Std</div>
-            <div style="font-size:11px; color:#94a3b8;">${s.absentMinsNotExcused} Min</div>
-          </td>
-          <td>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <div style="width:48px; height:6px; background:#f1f5f9; border-radius:9999px; overflow:hidden;">
-                <div style="height:100%; width:${Math.min(100, s.unexcusedPercentage)}%; background:${unexBarColor};"></div>
-              </div>
-              <span style="font-weight:700; color:#334155;">${s.unexcusedPercentage}%</span>
-            </div>
-          </td>
-          <td>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span class="badge ${badgeClass}">${badgeIcon} ${badgeText}</span>
-              ${s.riskFactors.length > 0 ? `<span style="font-size:11px; color:#64748b; text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:240px;" title="${s.riskFactors.join('\n')}">• ${s.riskFactors[0]}</span>` : ''}
-            </div>
-          </td>
-        `;
-
-        tr.addEventListener('click', () => openStudentModal(s));
-        tbody.appendChild(tr);
-      });
-    }
-
-    // --- 5. STUDENT DETAIL MODAL ---
-    function openStudentModal(student) {
-      document.getElementById('modal-student-id').textContent = `ID: ${student.studentId}`;
-      document.getElementById('modal-student-name').textContent = student.name;
-      document.getElementById('modal-student-class').textContent = `Klasse ${student.klasse} (Klassen-ID: ${student.klasseId})`;
-
-      const excusedHours = Math.max(0, round(student.absentHours - student.absentHoursNotExcused, 1));
-      const excusedMins = Math.max(0, student.absentMins - student.absentMinsNotExcused);
-
-      document.getElementById('modal-hours-total').textContent = `${student.absentHours}h`;
-      document.getElementById('modal-mins-total').textContent = `${student.absentMins} Min`;
-      document.getElementById('modal-hours-unex').textContent = `${student.absentHoursNotExcused}h`;
-      document.getElementById('modal-mins-unex').textContent = `${student.absentMinsNotExcused} Min (${student.unexcusedPercentage}%)`;
-      document.getElementById('modal-hours-ex').textContent = `${excusedHours}h`;
-      document.getElementById('modal-mins-ex').textContent = `${excusedMins} Min`;
-
-      const badgeDiv = document.getElementById('modal-status-badge');
-      const catEl = document.getElementById('modal-status-category');
-      const descEl = document.getElementById('modal-status-desc');
-
-      if (student.status === 'critical') {
-        badgeDiv.style.background = '#fef2f2';
-        badgeDiv.style.borderColor = '#fecaca';
-        badgeDiv.style.color = '#991b1b';
-        catEl.textContent = 'Einstufung Schulverwaltung: Kritisch';
-        descEl.textContent = 'Sofortige Prüfung & Einleitung von Maßnahmen';
-      } else if (student.status === 'warning') {
-        badgeDiv.style.background = '#fffbeb';
-        badgeDiv.style.borderColor = '#fde68a';
-        badgeDiv.style.color = '#92400e';
-        catEl.textContent = 'Einstufung Schulverwaltung: Auffällig';
-        descEl.textContent = 'Unter Beobachtung & Rücksprache mit Klassenleitung';
-      } else {
-        badgeDiv.style.background = '#f0fdf4';
-        badgeDiv.style.borderColor = '#bbf7d0';
-        badgeDiv.style.color = '#166534';
-        catEl.textContent = 'Einstufung Schulverwaltung: Normal';
-        descEl.textContent = 'Fehlzeiten liegen im unauffälligen Bereich';
-      }
-
-      const riskList = document.getElementById('modal-risk-list');
-      riskList.innerHTML = '';
-      if (student.riskFactors.length === 0) {
-        riskList.innerHTML = '<li style="font-size:12px; color:#16a34a; background:#f0fdf4; border:1px solid #bbf7d0; padding:6px 10px; border-radius:6px;">Keine Auffälligkeiten vorhanden.</li>';
-      } else {
-        student.riskFactors.forEach(rf => {
-          const li = document.createElement('li');
-          li.style.cssText = 'font-size:12px; color:#b91c1c; background:#fef2f2; border:1px solid #fee2e2; padding:6px 10px; border-radius:6px; display:flex; align-items:center; gap:6px;';
-          li.innerHTML = '<span style="width:6px; height:6px; border-radius:50%; background:#ef4444; flex-shrink:0;"></span>' + rf;
-          riskList.appendChild(li);
-        });
-      }
-
-      const actionsList = document.getElementById('modal-actions-list');
-      actionsList.innerHTML = '';
-      if (student.status === 'critical') {
-        actionsList.innerHTML = `
-          <li>Schriftliche Mahnung an Erziehungsberechtigte versenden</li>
-          <li>Klassenleitung und Schulsozialarbeit kontaktieren</li>
-          <li>Prüfung von Attestpflicht oder Einleitung Ordnungswidrigkeitsverfahren</li>
-        `;
-      } else if (student.status === 'warning') {
-        actionsList.innerHTML = `
-          <li>Rücksprache mit Klassenleitung bei nächster Konferenz</li>
-          <li>Nachweis ausstehender Entschuldigungsschreiben anfordern</li>
-        `;
-      } else {
-        actionsList.innerHTML = '<li>Keine Verwaltungsmaßnahmen erforderlich</li>';
-      }
-
-      document.getElementById('detail-modal').style.display = 'flex';
-    }
-
-    // --- 6. EXPORT FILTERED CSV ---
-    function exportFilteredCsv() {
-      let list = state.analyzedStudents.filter(s => {
-        if (state.selectedClass && s.klasse !== state.selectedClass) return false;
-        if (state.statusFilter !== 'all' && s.status !== state.statusFilter) return false;
-        if (state.searchTerm) {
-          const q = state.searchTerm.toLowerCase();
-          const matchName = s.name.toLowerCase().includes(q);
-          const matchId = s.studentId.toString().toLowerCase().includes(q);
-          const matchKlasse = s.klasse.toLowerCase().includes(q);
-          if (!matchName && !matchId && !matchKlasse) return false;
-        }
-        return true;
-      });
-
-      if (list.length === 0) {
-        alert('Keine Schüler zum Exportieren vorhanden.');
-        return;
-      }
-
-      const headers = ['studentId', 'name', 'klasse', 'klasseId', 'absentHours', 'absentHoursNotExcused', 'unexcusedPercentage', 'status', 'riskFactors'];
-      const rows = list.map(s => [
-        `"${s.studentId}"`,
-        `"${s.name}"`,
-        `"${s.klasse}"`,
-        `"${s.klasseId}"`,
-        s.absentHours,
-        s.absentHoursNotExcused,
-        `"${s.unexcusedPercentage}%"`,
-        s.status,
-        `"${(s.riskFactors || []).join('; ')}"`
-      ]);
-
-      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `fehlzeiten_auswertung_${state.selectedClass || 'alle'}_${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
     }
 
     // --- 6b. VERSPÄTUNGEN (Fehlzeiten pro Schüler*in & Fach) ---
@@ -1883,7 +1073,7 @@
       period: { from: '', to: '', source: '' }   // ISO dates (YYYY-MM-DD)
     };
 
-    let activeView = 'absences';
+    const activeView = 'late';
 
     function esc(value) {
       return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -2188,13 +1378,6 @@
       }
     }
 
-    // Detects the CSV type and loads it into the matching view. Returns 'late', 'absences' or null.
-    function loadAnyCsv(csvText, fileName, isAutoLoaded = false) {
-      if (isLateCsv(csvText)) {
-        return loadLateCsvData(csvText, fileName, isAutoLoaded) ? 'late' : null;
-      }
-      return loadCsvData(csvText, fileName, isAutoLoaded) ? 'absences' : null;
-    }
 
     function filterLateStudents() {
       const q = lateState.searchTerm.toLowerCase();
@@ -2510,30 +1693,12 @@
       printModal.addEventListener('click', (e) => { if (e.target === printModal) closePrintModal(); });
     }
 
-    // --- 6c. VIEW SWITCHING ---
+    // --- 6c. FILE BADGE ---
     function updateFileBadge() {
-      const fileMeta = document.getElementById('file-meta');
-      let name = '', count = 0;
-      if (activeView === 'late' && lateState.students.length > 0) {
-        name = lateState.currentFileName;
-        count = lateState.students.length;
-      } else if (activeView === 'absences' && state.analyzedStudents.length > 0) {
-        name = state.currentFileName || 'Fehlzeiten.csv';
-        count = state.analyzedStudents.length;
-      }
-      fileMeta.style.display = name ? 'inline-flex' : 'none';
-      document.getElementById('file-name-text').textContent = name;
-      document.getElementById('file-count-text').textContent = `${count} Schüler`;
-    }
-
-    function setView(view) {
-      activeView = view;
-      document.body.dataset.view = view;
-      document.getElementById('view-absences').style.display = view === 'absences' ? 'flex' : 'none';
-      document.getElementById('view-late').style.display = view === 'late' ? 'flex' : 'none';
-      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
-      try { localStorage.setItem('sf_active_view', view); } catch (e) { /* ignore */ }
-      updateFileBadge();
+      const hasData = lateState.students.length > 0;
+      document.getElementById('file-meta').style.display = hasData ? 'inline-flex' : 'none';
+      document.getElementById('file-name-text').textContent = lateState.currentFileName;
+      document.getElementById('file-count-text').textContent = `${lateState.students.length} Schüler`;
     }
 
     // --- 7. NOTIFICATION SYSTEM ---
@@ -2543,128 +1708,52 @@
       banner.style.display = 'flex';
     }
 
-    // --- 8. DATA LOADING & STORAGE ---
-    function loadCsvData(csvText, fileName = 'upload.csv', isAutoLoaded = false) {
-      try {
-        const students = parseCsvString(csvText);
-        state.rawStudents = students;
-        state.currentFileName = fileName;
+    // --- 8. AUTOMATIC LOADING ---
+    // Candidate file names next to this HTML file (only reachable when served via a web server)
+    const CANDIDATE_FILES = ['verspätungen.csv', 'verspaetungen.csv', 'fehlzeiten_faecher.csv', 'fehlzeiten-faecher.csv'];
 
-        // Persist in localStorage so subsequent loads can remember the file
-        try {
-          localStorage.setItem('sf_last_csv_text', csvText);
-          localStorage.setItem('sf_last_csv_name', fileName);
-        } catch (e) {
-          console.warn('LocalStorage voll oder gesperrt:', e);
-        }
-
-        recalculateAndRender();
-
-        if (isAutoLoaded) {
-          showNotification(`✓ CSV-Datei "${fileName}" (${students.length} Schüler) automatisch geladen.`);
-        }
-        return true;
-      } catch (err) {
-        if (!isAutoLoaded) {
-          alert('Fehler beim Verarbeiten der CSV: ' + err.message);
-        } else {
-          console.warn('Auto-Load fehlgeschlagen für ' + fileName + ':', err);
-        }
-        return false;
-      }
-    }
-
-    function recalculateAndRender() {
-      if (!state.rawStudents || state.rawStudents.length === 0) {
-        renderDashboard();
-        return;
-      }
-      const res = runFullAnalysis(state.rawStudents, state.thresholds);
-      state.analyzedStudents = res.analyzedStudents;
-      state.classes = res.classes;
-      state.kpis = res.kpis;
-      renderDashboard();
-    }
-
-    // --- 9. AUTOMATIC CSV DETECTION IN FOLDER ---
-    async function tryAutoDetectCsv() {
-      const loaded = new Set();
-
-      // 1. Try to fetch candidate files in current folder (each file is routed by its detected format)
+    async function tryAutoLoad() {
       for (const fileName of CANDIDATE_FILES) {
-        if (loaded.has('absences') && loaded.has('late')) break;
         try {
-          const response = await fetch(fileName + '?t=' + Date.now(), { cache: 'no-cache' });
-          if (response.ok) {
-            const text = decodeCsvBuffer(await response.arrayBuffer());
-            if (!text) continue;
-            const kind = isLateCsv(text) ? 'late' : 'absences';
-            if (loaded.has(kind)) continue;
-            // Verify it has CSV content
-            if (kind === 'late' || text.includes('student') || text.includes('klasse') || text.includes('name') || text.includes(',')) {
-              if (loadAnyCsv(text, fileName, true)) loaded.add(kind);
-            }
-          }
+          const response = await fetch(encodeURI(fileName) + '?t=' + Date.now(), { cache: 'no-cache' });
+          if (!response.ok) continue;
+          const text = decodeCsvBuffer(await response.arrayBuffer());
+          if (text && isLateCsv(text) && loadLateCsvData(text, fileName, true)) return;
         } catch (e) {
           // fetch on file:// or 404
         }
       }
 
-      // 2. Check localStorage cache as secondary auto-detection
+      // Fallback: last imported file from this browser's storage
       try {
-        const cachedText = localStorage.getItem('sf_last_csv_text');
-        const cachedName = localStorage.getItem('sf_last_csv_name');
-        if (!loaded.has('absences') && cachedText && cachedName && loadCsvData(cachedText, cachedName, true)) {
-          loaded.add('absences');
-        }
-        const cachedLateText = localStorage.getItem('sf_late_csv_text');
-        const cachedLateName = localStorage.getItem('sf_late_csv_name');
-        if (!loaded.has('late') && cachedLateText && cachedLateName && loadLateCsvData(cachedLateText, cachedLateName, true)) {
-          loaded.add('late');
-        }
+        const cachedText = localStorage.getItem('sf_late_csv_text');
+        const cachedName = localStorage.getItem('sf_late_csv_name');
+        if (cachedText && cachedName && loadLateCsvData(cachedText, cachedName, true)) return;
       } catch (e) {
         console.warn(e);
       }
 
-      // Render empty states for whatever was not found
-      if (!loaded.has('absences')) renderDashboard();
-      if (!loaded.has('late')) renderLateView();
-      if (loaded.size === 2) {
-        showNotification(`✓ Fehlzeiten "${state.currentFileName}" und Verspätungen "${lateState.currentFileName}" automatisch geladen.`);
-      }
-      return loaded.size > 0;
+      renderLateView();
     }
 
-    // Directory Picker Scan (Native File System Access API)
+    // Directory Picker Scan (Native File System Access API) - takes the first Verspätungs-CSV
     async function scanLocalDirectory() {
       if (!('showDirectoryPicker' in window)) {
         document.getElementById('file-input').click();
         return;
       }
-
       try {
         const dirHandle = await window.showDirectoryPicker();
-        const loaded = {};
-
-        // Take the first CSV of each format (Fehlzeiten / Verspätungen)
         for await (const entry of dirHandle.values()) {
-          if (loaded.absences && loaded.late) break;
           if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.csv')) {
-            const file = await entry.getFile();
-            const text = decodeCsvBuffer(await file.arrayBuffer());
-            const kind = isLateCsv(text) ? 'late' : 'absences';
-            if (loaded[kind]) continue;
-            if (loadAnyCsv(text, entry.name, true)) loaded[kind] = entry.name;
+            const text = decodeCsvBuffer(await (await entry.getFile()).arrayBuffer());
+            if (isLateCsv(text) && loadLateCsvData(text, entry.name, true)) {
+              showNotification(`✓ Datei "${entry.name}" im Ordner gefunden und geladen.`);
+              return;
+            }
           }
         }
-
-        const names = Object.values(loaded);
-        if (names.length > 0) {
-          showNotification(`✓ Im Ordner gefunden und geladen: ${names.map(n => `"${n}"`).join(', ')}.`);
-          setView(loaded.late ? 'late' : 'absences');
-        } else {
-          alert('Keine gültige .csv-Datei im ausgewählten Ordner gefunden.');
-        }
+        alert('Keine Verspätungs-CSV im ausgewählten Ordner gefunden.');
       } catch (err) {
         if (err.name !== 'AbortError') {
           console.error('Ordner-Scan Fehler:', err);
@@ -2673,164 +1762,46 @@
       }
     }
 
-    // --- 10. INITIALIZATION & EVENT LISTENERS ---
-    document.addEventListener('DOMContentLoaded', () => {
-      // Restore last active view
+    // Removes the copy of the last imported file from this browser
+    function clearStoredData() {
+      if (!confirm('Gespeicherte Verspätungs-Daten aus diesem Browser entfernen?')) return;
       try {
-        if (localStorage.getItem('sf_active_view') === 'late') setView('late');
+        localStorage.removeItem('sf_late_csv_text');
+        localStorage.removeItem('sf_late_csv_name');
+        localStorage.removeItem('sf_late_period');
       } catch (e) { /* ignore */ }
+      lateState.records = [];
+      lateState.currentFileName = '';
+      lateState.period = { from: '', to: '', source: '' };
+      lateState.selectedClass = '';
+      recalculateLateAndRender();
+      document.getElementById('notification-banner').style.display = 'none';
+    }
 
-      // Auto-detect CSV in folder on startup
-      tryAutoDetectCsv();
+    // --- 9. INITIALIZATION & EVENT LISTENERS ---
+    document.addEventListener('DOMContentLoaded', () => {
+      tryAutoLoad();
 
-      // View Switch
-      document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', () => setView(btn.dataset.view));
-      });
-
-      // Scan Folder Buttons
-      document.getElementById('scan-folder-btn').addEventListener('click', scanLocalDirectory);
-      document.getElementById('empty-scan-btn').addEventListener('click', scanLocalDirectory);
-
-      // Upload Buttons
       const uploadModal = document.getElementById('upload-modal');
-      const openUploadBtn = document.getElementById('open-upload-btn');
-      const emptyUploadBtn = document.getElementById('empty-upload-btn');
-      const closeUploadBtn = document.getElementById('close-upload-btn');
-      const cancelUploadBtn = document.getElementById('cancel-upload-btn');
+      const lateModal = document.getElementById('late-modal');
       const dropzone = document.getElementById('dropzone');
       const fileInput = document.getElementById('file-input');
 
-      openUploadBtn.addEventListener('click', () => uploadModal.style.display = 'flex');
-      emptyUploadBtn.addEventListener('click', () => fileInput.click());
-      closeUploadBtn.addEventListener('click', () => uploadModal.style.display = 'none');
-      cancelUploadBtn.addEventListener('click', () => uploadModal.style.display = 'none');
-
-      // Notification Banner Close
+      document.getElementById('scan-folder-btn').addEventListener('click', scanLocalDirectory);
+      document.getElementById('open-upload-btn').addEventListener('click', () => uploadModal.style.display = 'flex');
+      document.getElementById('late-empty-upload-btn').addEventListener('click', () => fileInput.click());
+      document.getElementById('close-upload-btn').addEventListener('click', () => uploadModal.style.display = 'none');
+      document.getElementById('cancel-upload-btn').addEventListener('click', () => uploadModal.style.display = 'none');
+      document.getElementById('clear-data-btn').addEventListener('click', clearStoredData);
       document.getElementById('close-notification-btn').addEventListener('click', () => {
         document.getElementById('notification-banner').style.display = 'none';
       });
 
-      // Threshold Toggle & Settings
+      // Thresholds
       document.getElementById('toggle-threshold-btn').addEventListener('click', () => {
-        const panel = document.getElementById(activeView === 'late' ? 'late-threshold-panel' : 'threshold-panel');
+        const panel = document.getElementById('late-threshold-panel');
         panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
       });
-
-      document.getElementById('apply-thresholds-btn').addEventListener('click', () => {
-        state.thresholds.unexcusedHoursCritical = parseFloat(document.getElementById('th-unex-crit').value) || 10;
-        state.thresholds.unexcusedHoursWarning = parseFloat(document.getElementById('th-unex-warn').value) || 4;
-        state.thresholds.absentHoursCritical = parseFloat(document.getElementById('th-tot-crit').value) || 35;
-        state.thresholds.absentHoursWarning = parseFloat(document.getElementById('th-tot-warn').value) || 20;
-        state.thresholds.unexcusedRateCritical = parseFloat(document.getElementById('th-rate-crit').value) || 30;
-        recalculateAndRender();
-      });
-
-      document.getElementById('reset-thresholds-btn').addEventListener('click', () => {
-        state.thresholds = {
-          unexcusedHoursCritical: 10,
-          unexcusedHoursWarning: 4,
-          absentHoursCritical: 35,
-          absentHoursWarning: 20,
-          unexcusedRateCritical: 30
-        };
-        document.getElementById('th-unex-crit').value = 10;
-        document.getElementById('th-unex-warn').value = 4;
-        document.getElementById('th-tot-crit').value = 35;
-        document.getElementById('th-tot-warn').value = 20;
-        document.getElementById('th-rate-crit').value = 30;
-        recalculateAndRender();
-      });
-
-      // Quick Filter via KPI Cards
-      document.getElementById('kpi-card-critical').addEventListener('click', () => {
-        state.statusFilter = state.statusFilter === 'critical' ? 'all' : 'critical';
-        updateStatusTabs();
-        renderTable();
-      });
-      document.getElementById('kpi-card-warning').addEventListener('click', () => {
-        state.statusFilter = state.statusFilter === 'warning' ? 'all' : 'warning';
-        updateStatusTabs();
-        renderTable();
-      });
-
-      // Search & Filters
-      document.getElementById('student-search').addEventListener('input', (e) => {
-        state.searchTerm = e.target.value;
-        renderTable();
-      });
-
-      document.getElementById('class-select').addEventListener('change', (e) => {
-        state.selectedClass = e.target.value;
-        renderClasses();
-        renderTable();
-      });
-
-      function updateStatusTabs() {
-        document.querySelectorAll('#view-absences .tab-btn').forEach(btn => {
-          if (btn.dataset.status === state.statusFilter) btn.classList.add('active');
-          else btn.classList.remove('active');
-        });
-      }
-
-      document.querySelectorAll('#view-absences .tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          state.statusFilter = btn.dataset.status;
-          updateStatusTabs();
-          renderTable();
-        });
-      });
-
-      // Sort Columns
-      document.querySelectorAll('th[data-sort]').forEach(th => {
-        th.addEventListener('click', () => {
-          const field = th.dataset.sort;
-          if (state.sortField === field) {
-            state.sortAsc = !state.sortAsc;
-          } else {
-            state.sortField = field;
-            state.sortAsc = false;
-          }
-          renderTable();
-        });
-      });
-
-      // CSV Export
-      document.getElementById('export-csv-btn').addEventListener('click', exportFilteredCsv);
-
-      // Drag & Drop
-      dropzone.addEventListener('click', () => fileInput.click());
-      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
-      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('dragover');
-        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-          handleFile(e.dataTransfer.files[0]);
-        }
-      });
-
-      fileInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files.length > 0) {
-          handleFile(e.target.files[0]);
-        }
-      });
-
-      async function handleFile(file) {
-        const text = decodeCsvBuffer(await file.arrayBuffer());
-        if (activeView === 'late') {
-          // Import from the Verspätungen tab always stays in the Verspätungen dashboard
-          loadLateCsvData(text, file.name, false);
-        } else {
-          const kind = loadAnyCsv(text, file.name, false);
-          if (kind) setView(kind);
-        }
-        uploadModal.style.display = 'none';
-        fileInput.value = '';
-      }
-
-      // --- Verspätungen: Controls ---
-      document.getElementById('late-empty-upload-btn').addEventListener('click', () => fileInput.click());
 
       document.getElementById('late-apply-thresholds-btn').addEventListener('click', () => {
         lateState.thresholds.lateMinsWarning = parseFloat(document.getElementById('th-late-warn').value) || LATE_DEFAULT_THRESHOLDS.lateMinsWarning;
@@ -2845,6 +1816,7 @@
         recalculateLateAndRender();
       });
 
+      // Filters
       function updateLateStatusTabs() {
         document.querySelectorAll('#view-late .tab-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.status === lateState.statusFilter);
@@ -2895,24 +1867,39 @@
         });
       });
 
+      // Export & Print
       document.getElementById('late-export-csv-btn').addEventListener('click', exportLateCsv);
       document.getElementById('late-print-btn').addEventListener('click', printLateView);
       bindLateExtras();
-      // Also keep the print header current when printing via Ctrl+P
       window.addEventListener('beforeprint', () => {
-        if (activeView === 'late' && lateState.students.length > 0) updateLatePrintHeader();
+        if (lateState.students.length > 0) updateLatePrintHeader();
       });
 
-      // Detail Modal Close
-      const detailModal = document.getElementById('detail-modal');
-      const lateModal = document.getElementById('late-modal');
-      document.getElementById('close-detail-btn').addEventListener('click', () => detailModal.style.display = 'none');
-      document.getElementById('close-detail-footer-btn').addEventListener('click', () => detailModal.style.display = 'none');
+      // File import (Drag & Drop / Dialog)
+      async function handleFile(file) {
+        const text = decodeCsvBuffer(await file.arrayBuffer());
+        loadLateCsvData(text, file.name, false);
+        uploadModal.style.display = 'none';
+        fileInput.value = '';
+      }
+
+      dropzone.addEventListener('click', () => fileInput.click());
+      dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+      dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+      });
+      fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) handleFile(e.target.files[0]);
+      });
+
+      // Modal Close
       document.getElementById('close-late-modal-btn').addEventListener('click', () => lateModal.style.display = 'none');
       document.getElementById('close-late-modal-footer-btn').addEventListener('click', () => lateModal.style.display = 'none');
       window.addEventListener('click', (e) => {
         if (e.target === uploadModal) uploadModal.style.display = 'none';
-        if (e.target === detailModal) detailModal.style.display = 'none';
         if (e.target === lateModal) lateModal.style.display = 'none';
       });
     });
