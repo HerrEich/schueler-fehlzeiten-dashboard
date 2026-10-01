@@ -25,6 +25,11 @@ Analyse-Dashboard für die Schulverwaltung zur schnellen Erkennung auffälliger 
   - Handlungsempfehlungen / Checkliste für das Sekretariat und die Schulleitung.
 - **Dynamische Schwellenwerte**:
   - Anpassbare Grenzwerte für unentschuldigte und Gesamtstunden mit sofortiger Neuberechnung.
+- **Verspätungen** (eigene Ansicht, umschaltbar im Header – nur `index.html`):
+  - Import des Fehlzeiten-Exports pro Schüler*in und Fach; das Format wird automatisch erkannt.
+  - Verspätungsminuten = Spalte „davon unent.“ unter „Fehlmin.“.
+  - KPIs, Klassen-Vergleich, Auswertung nach Fächern (inkl. Lehrkräfte), Schülerliste mit Filtern, Detailansicht pro Fach und CSV-Export.
+  - Anpassbare Grenzwerte (Standard: auffällig ab 45 Min, kritisch ab 90 Min).
 
 ---
 
@@ -38,6 +43,16 @@ S1001,Maximilian Schmidt,9a,K09A,1800,720,30,12
 S1002,Sophie Weber,9a,K09A,450,90,7.5,1.5
 S1003,Leon Fischer,9a,K09A,2250,900,37.5,15
 ```
+
+### Verspätungen (pro Schüler*in und Fach)
+
+Trennzeichen (`;` `,` Tab `|`) werden automatisch ermittelt, deutsche Zahlenformate (`1.800`, `4,5`) werden unterstützt.
+
+```
+Schüler*innen | Externe Id | Klasse | Fach | Lehrkraft | Unterrichtsstunden | Unterrichtsminuten | Fehlstd. | davon unent. | zählend | unent. zählend | Fehlmin. | davon unent. | zählend | unent. zählend
+```
+
+Die Verspätungsminuten werden aus der zweiten Spalte „davon unent.“ (nach „Fehlmin.“) gelesen. Beim automatischen Laden wird zusätzlich nach `verspaetungen.csv` bzw. `fehlzeiten_faecher.csv` gesucht.
 
 ---
 

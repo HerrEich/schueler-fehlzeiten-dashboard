@@ -151,8 +151,42 @@
       gap: 12px;
     }
 
+    /* View Switch (Fehlzeiten / Verspätungen) */
+    .view-switch {
+      display: inline-flex;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      padding: 3px;
+      border-radius: 10px;
+      gap: 2px;
+    }
+    .view-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .view-btn.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+    .view-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .bar-late { background: #8b5cf6; height: 100%; }
+
     /* Empty State */
-    #empty-state {
+    #empty-state, #late-empty-state {
       display: none;
       background: #ffffff;
       border: 2px dashed #cbd5e1;
@@ -190,7 +224,7 @@
     }
 
     /* Threshold Drawer */
-    #threshold-panel {
+    #threshold-panel, #late-threshold-panel {
       display: none;
       background: #0f172a;
       color: white;
@@ -565,6 +599,11 @@
         </div>
       </div>
 
+      <div class="view-switch">
+        <button class="view-btn active" data-view="absences">Fehlzeiten</button>
+        <button class="view-btn" data-view="late">Verspätungen</button>
+      </div>
+
       <div class="actions">
         <div id="file-meta" class="file-badge" style="display: none;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
@@ -617,6 +656,9 @@
       </div>
       <button id="close-notification-btn" style="border:none; background:none; cursor:pointer; font-size:16px; color:#1e40af;">✕</button>
     </div>
+
+    <!-- ===== VIEW: FEHLZEITEN ===== -->
+    <div id="view-absences" class="view-panel">
 
     <!-- Empty State (Shown when no CSV is present) -->
     <div id="empty-state">
@@ -833,6 +875,196 @@
       </div>
     </div>
 
+    </div>
+    <!-- ===== END VIEW: FEHLZEITEN ===== -->
+
+    <!-- ===== VIEW: VERSPÄTUNGEN ===== -->
+    <div id="view-late" class="view-panel" style="display:none;">
+
+      <!-- Empty State -->
+      <div id="late-empty-state">
+        <div class="empty-state-icon" style="background:#f5f3ff; color:#7c3aed;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <h2 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:6px;">Keine Verspätungs-Daten geladen</h2>
+        <p style="font-size:13px; color:#64748b; max-width:480px; margin:0 auto 20px;">
+          Wähle den Fehlzeiten-Export pro Schüler*in und Fach (z. B. <code>verspaetungen.csv</code>). Das Format wird automatisch erkannt.
+        </p>
+        <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:24px;">
+          <button id="late-empty-upload-btn" class="btn btn-primary" style="padding:10px 18px; font-size:13px;">CSV-Datei auswählen</button>
+        </div>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; text-align:left; font-size:12px; max-width:540px; margin:0 auto;">
+          <div style="font-weight:700; color:#334155; margin-bottom:4px;">Erwartete CSV-Spalten:</div>
+          <div style="font-family:monospace; font-size:11px; color:#475569;">
+            Schüler*innen, Externe Id, Klasse, Fach, Lehrkraft, Unterrichtsstunden, Unterrichtsminuten, Fehlstd., davon unent., zählend, unent. zählend, Fehlmin., <strong style="color:#7c3aed;">davon unent.</strong>, zählend, unent. zählend
+          </div>
+          <div style="margin-top:6px; color:#64748b;">Verspätungsminuten = Spalte „davon unent.“ nach „Fehlmin.“</div>
+        </div>
+      </div>
+
+      <!-- Threshold Panel -->
+      <div id="late-threshold-panel">
+        <div class="threshold-header">
+          <h3>Schwellenwerte für Verspätungen</h3>
+          <div style="display:flex; gap:8px;">
+            <button id="late-reset-thresholds-btn" class="btn btn-secondary" style="padding:4px 8px; font-size:11px;">Standard</button>
+            <button id="late-apply-thresholds-btn" class="btn btn-primary" style="padding:4px 10px; font-size:11px;">Neu berechnen</button>
+          </div>
+        </div>
+        <div class="threshold-grid">
+          <div class="threshold-item">
+            <label>🟡 Auffällig ab Verspätungsminuten</label>
+            <input type="number" id="th-late-warn" min="1" max="10000" value="45">
+          </div>
+          <div class="threshold-item">
+            <label>🔴 Kritisch ab Verspätungsminuten</label>
+            <input type="number" id="th-late-crit" min="1" max="10000" value="90">
+          </div>
+        </div>
+      </div>
+
+      <div id="late-content" class="view-panel">
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:#eff6ff; color:#2563eb;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div>
+              <div class="kpi-title">Schüler mit Verspätung</div>
+              <div class="kpi-value" id="late-kpi-students">0</div>
+              <div class="kpi-sub" id="late-kpi-students-sub">von 0 im Datensatz</div>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background:#f5f3ff; color:#7c3aed;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+            </div>
+            <div>
+              <div class="kpi-title">Verspätungsminuten</div>
+              <div class="kpi-value" style="color:#6d28d9;" id="late-kpi-mins">0 <span style="font-size:14px; font-weight:500; color:#64748b;">Min</span></div>
+              <div class="kpi-sub" id="late-kpi-avg">Ø 0 Min / Schüler mit Verspätung</div>
+            </div>
+          </div>
+
+          <div class="kpi-card kpi-critical" id="late-kpi-card-critical" title="Klicken, um nur kritische Fälle anzuzeigen">
+            <div class="kpi-icon" style="background:#dc2626; color:white;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <div>
+              <div class="kpi-title" style="color:#b91c1c;">Kritisch</div>
+              <div class="kpi-value" style="color:#7f1d1d;" id="late-kpi-critical-count">0</div>
+              <div class="kpi-sub" style="color:#b91c1c; font-weight:600;" id="late-kpi-critical-sub">ab 90 Min</div>
+            </div>
+          </div>
+
+          <div class="kpi-card kpi-warning" id="late-kpi-card-warning" title="Klicken, um nur auffällige Fälle anzuzeigen">
+            <div class="kpi-icon" style="background:#f59e0b; color:white;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+            </div>
+            <div>
+              <div class="kpi-title" style="color:#92400e;">Auffällig</div>
+              <div class="kpi-value" style="color:#78350f;" id="late-kpi-warning-count">0</div>
+              <div class="kpi-sub" style="color:#92400e; font-weight:600;" id="late-kpi-warning-sub">ab 45 Min</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Classes -->
+        <div class="section-card">
+          <div class="section-header">
+            <div>
+              <h2>Verspätungen nach Klassen</h2>
+              <p style="font-size:12px; color:var(--text-muted);">Klicke auf eine Klasse, um Fächer und Schülerliste zu filtern</p>
+            </div>
+          </div>
+          <div class="classes-grid" id="late-classes-container"></div>
+        </div>
+
+        <!-- Subjects -->
+        <div class="section-card">
+          <div class="section-header">
+            <div>
+              <h2>Verspätungen nach Fächern</h2>
+              <p style="font-size:12px; color:var(--text-muted);" id="late-subjects-hint">Alle Klassen</p>
+            </div>
+          </div>
+          <div class="table-wrapper" style="margin-top:0;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="cursor:default;">Fach</th>
+                  <th style="cursor:default;">Verspätungsminuten</th>
+                  <th style="cursor:default;">Betroffene Schüler</th>
+                  <th style="cursor:default;">Lehrkräfte</th>
+                </tr>
+              </thead>
+              <tbody id="late-subjects-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Student Table -->
+        <div class="section-card" style="padding:0; overflow:hidden;">
+          <div style="padding: 16px 20px;">
+            <div class="table-controls">
+              <div class="filters-group">
+                <input type="text" id="late-student-search" class="search-input" placeholder="Schüler suchen (Name, ID)...">
+                <select id="late-class-select" class="select-input">
+                  <option value="">Alle Klassen</option>
+                </select>
+                <div class="status-tabs">
+                  <button class="tab-btn active" data-status="all">Alle</button>
+                  <button class="tab-btn tab-btn-critical" data-status="critical">🔴 Kritisch</button>
+                  <button class="tab-btn tab-btn-warning" data-status="warning">🟡 Auffällig</button>
+                  <button class="tab-btn tab-btn-normal" data-status="normal">🟢 Normal</button>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span id="late-filtered-count" style="font-size:12px; color:#64748b; font-weight:500;">0 Schüler</span>
+                <button id="late-export-csv-btn" class="btn btn-secondary">CSV Export</button>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-late-sort="name">Name / ID ↕</th>
+                    <th data-late-sort="klasse">Klasse ↕</th>
+                    <th data-late-sort="lateMins">Verspätung ↕</th>
+                    <th data-late-sort="latePercentage">Anteil Unterricht ↕</th>
+                    <th data-late-sort="lateSubjectCount">Fächer ↕</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="late-students-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ===== END VIEW: VERSPÄTUNGEN ===== -->
+
   </main>
 
   <!-- Upload Modal -->
@@ -867,6 +1099,11 @@
             <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">absentHours</span>
             <span style="background:white; border:1px solid #cbd5e1; padding:2px 6px; border-radius:4px;">absentHoursNotExcused</span>
           </div>
+          <p style="font-weight:700; margin:10px 0 4px; color:#334155;">Oder für Verspätungen (pro Schüler*in &amp; Fach):</p>
+          <div style="font-family:monospace; font-size:11px; color:#475569;">
+            Schüler*innen, Externe Id, Klasse, Fach, Lehrkraft, …, Fehlmin., davon unent., …
+          </div>
+          <p style="margin-top:6px; color:#64748b;">Das Format wird automatisch erkannt.</p>
         </div>
       </div>
       <div class="modal-footer">
@@ -934,6 +1171,54 @@
     </div>
   </div>
 
+  <!-- Late Student Detail Modal -->
+  <div id="late-modal" class="modal-overlay">
+    <div class="modal-card" style="max-width:680px;">
+      <div class="modal-header">
+        <div>
+          <span id="late-modal-student-id" style="font-size:11px; font-family:monospace; color:#94a3b8;">ID</span>
+          <h3 id="late-modal-student-name" style="font-size:18px; font-weight:800; color:#0f172a;">Name</h3>
+          <p id="late-modal-student-class" style="font-size:12px; font-weight:600; color:#64748b;">Klasse</p>
+        </div>
+        <button id="close-late-modal-btn" style="border:none; background:none; cursor:pointer; font-size:18px; color:#64748b;">✕</button>
+      </div>
+      <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;">
+          <div style="background:#f5f3ff; border:1px solid #ddd6fe; border-radius:10px; padding:10px;">
+            <div style="font-size:11px; font-weight:700; color:#6d28d9; text-transform:uppercase;">Verspätung</div>
+            <div style="font-size:18px; font-weight:800; color:#6d28d9; margin-top:2px;" id="late-modal-mins">0 Min</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Anteil Unterricht</div>
+            <div style="font-size:18px; font-weight:800; color:#0f172a; margin-top:2px;" id="late-modal-pct">0%</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px;">
+            <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Fächer betroffen</div>
+            <div style="font-size:18px; font-weight:800; color:#0f172a; margin-top:2px;" id="late-modal-subjects">0</div>
+          </div>
+        </div>
+        <div id="late-modal-status" style="padding:10px 12px; border-radius:10px; border:1px solid transparent; font-size:13px; font-weight:700;"></div>
+        <div>
+          <p style="font-size:12px; font-weight:700; margin-bottom:6px; color:#334155;">Aufschlüsselung nach Fach:</p>
+          <table>
+            <thead>
+              <tr>
+                <th style="cursor:default;">Fach</th>
+                <th style="cursor:default;">Lehrkraft</th>
+                <th style="cursor:default;">Verspätung</th>
+                <th style="cursor:default;">Unterricht</th>
+              </tr>
+            </thead>
+            <tbody id="late-modal-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="close-late-modal-footer-btn" class="btn btn-dark">Schließen</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // --- 1. STATE ---
     let state = {
@@ -966,7 +1251,11 @@
       'fehlzeiten_2026.csv',
       'daten.csv',
       'export.csv',
-      'data.csv'
+      'data.csv',
+      'verspaetungen.csv',
+      'verspätungen.csv',
+      'fehlzeiten_faecher.csv',
+      'fehlzeiten-faecher.csv'
     ];
 
     // --- 2. ROBUST CSV PARSER ---
@@ -1149,18 +1438,16 @@
       const hasData = state.rawStudents && state.rawStudents.length > 0;
       const emptyState = document.getElementById('empty-state');
       const dashboardContent = document.getElementById('dashboard-content');
-      const fileMeta = document.getElementById('file-meta');
 
       if (!hasData) {
         emptyState.style.display = 'block';
         dashboardContent.style.display = 'none';
-        fileMeta.style.display = 'none';
+        updateFileBadge();
         return;
       }
 
       emptyState.style.display = 'none';
       dashboardContent.style.display = 'flex';
-      fileMeta.style.display = 'inline-flex';
 
       // KPIs
       document.getElementById('kpi-students').textContent = state.kpis.totalStudents;
@@ -1172,8 +1459,7 @@
       document.getElementById('kpi-warning-count').textContent = state.kpis.warningStudentsCount;
 
       // File Meta Badge
-      document.getElementById('file-name-text').textContent = state.currentFileName || 'Fehlzeiten.csv';
-      document.getElementById('file-count-text').textContent = `${state.kpis.totalStudents} Schüler`;
+      updateFileBadge();
 
       // Classes
       renderClasses();
@@ -1451,6 +1737,545 @@
       document.body.removeChild(link);
     }
 
+    // --- 6b. VERSPÄTUNGEN (Fehlzeiten pro Schüler*in & Fach) ---
+    const LATE_DEFAULT_THRESHOLDS = { lateMinsWarning: 45, lateMinsCritical: 90 };
+
+    let lateState = {
+      records: [],
+      students: [],
+      classes: [],
+      kpis: null,
+      selectedClass: '',
+      statusFilter: 'all',
+      searchTerm: '',
+      sortField: 'lateMins',
+      sortAsc: false,
+      thresholds: { ...LATE_DEFAULT_THRESHOLDS },
+      currentFileName: ''
+    };
+
+    let activeView = 'absences';
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function normHeader(h) {
+      return String(h || '').toLowerCase().replace(/[^a-z0-9äöüß]/g, '');
+    }
+
+    function countOutsideQuotes(line, delimiter) {
+      let count = 0, inQuotes = false;
+      for (const ch of line) {
+        if (ch === '"') inQuotes = !inQuotes;
+        else if (ch === delimiter && !inQuotes) count++;
+      }
+      return count;
+    }
+
+    // Picks the delimiter with the highest median count across the first lines
+    function detectDelimiter(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0).slice(0, 20);
+      let best = ',', bestScore = 0;
+      for (const d of [';', '\t', ',', '|']) {
+        const counts = lines.map(l => countOutsideQuotes(l, d)).sort((a, b) => a - b);
+        const median = counts.length ? counts[Math.floor(counts.length / 2)] : 0;
+        if (median > bestScore) { best = d; bestScore = median; }
+      }
+      return best;
+    }
+
+    // Quote-aware CSV splitter ("" escapes, line breaks inside quotes)
+    function splitCsvRows(text, delimiter) {
+      const rows = [];
+      let row = [], field = '', inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (inQuotes) {
+          if (ch === '"') {
+            if (text[i + 1] === '"') { field += '"'; i++; }
+            else inQuotes = false;
+          } else field += ch;
+        } else if (ch === '"' && field.trim() === '') {
+          inQuotes = true;
+        } else if (ch === delimiter) {
+          row.push(field); field = '';
+        } else if (ch === '\n' || ch === '\r') {
+          if (ch === '\r' && text[i + 1] === '\n') i++;
+          row.push(field); rows.push(row); row = []; field = '';
+        } else {
+          field += ch;
+        }
+      }
+      if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+      return rows.map(r => r.map(c => c.trim())).filter(r => r.some(c => c !== ''));
+    }
+
+    // German number format: "1.234,5" -> 1234.5
+    function parseNumber(value) {
+      let s = String(value || '').replace(/\s/g, '');
+      if (!s) return 0;
+      if (s.includes(',') || /^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '').replace(',', '.');
+      return Math.max(0, parseFloat(s) || 0);
+    }
+
+    function findLateHeaderRow(rows) {
+      return rows.slice(0, 20).findIndex(r => {
+        const h = r.map(normHeader);
+        return h.includes('fach') && h.some(x => x.startsWith('fehlmin'));
+      });
+    }
+
+    function isLateCsv(csvText) {
+      const text = csvText.charCodeAt(0) === 0xFEFF ? csvText.slice(1) : csvText;
+      const head = text.split(/\r?\n/).slice(0, 25).join('\n');
+      return findLateHeaderRow(splitCsvRows(head, detectDelimiter(head))) >= 0;
+    }
+
+    function parseLateCsv(csvText) {
+      const text = csvText.charCodeAt(0) === 0xFEFF ? csvText.slice(1) : csvText;
+      const rows = splitCsvRows(text, detectDelimiter(text));
+      const headerIdx = findLateHeaderRow(rows);
+      if (headerIdx < 0) throw new Error('Kopfzeile mit den Spalten "Fach" und "Fehlmin." nicht gefunden.');
+
+      const h = rows[headerIdx].map(normHeader);
+      const find = (pred, from = 0) => {
+        for (let i = from; i < h.length; i++) if (pred(h[i])) return i;
+        return -1;
+      };
+
+      const col = {
+        name: find(x => x.startsWith('schüler') || x.startsWith('schueler') || x === 'name'),
+        id: find(x => x === 'externeid' || x === 'id'),
+        klasse: find(x => x === 'klasse'),
+        fach: find(x => x === 'fach'),
+        lehrkraft: find(x => x.startsWith('lehrkraft') || x.startsWith('lehrer')),
+        unterrichtsMins: find(x => x === 'unterrichtsminuten'),
+        fehlMins: find(x => x.startsWith('fehlmin'))
+      };
+      // "davon unent." appears twice (under Fehlstd. and Fehlmin.) - the one after Fehlmin. holds the late minutes
+      col.lateMins = find(x => x.startsWith('davonunent'), col.fehlMins + 1);
+
+      if (col.name < 0) throw new Error('Spalte "Schüler*innen" nicht gefunden.');
+      if (col.lateMins < 0) throw new Error('Spalte "davon unent." nach "Fehlmin." nicht gefunden.');
+
+      const get = (r, i) => (i >= 0 && r[i] !== undefined ? r[i] : '');
+      const records = [];
+      for (const r of rows.slice(headerIdx + 1)) {
+        const name = get(r, col.name);
+        if (!name || /^(summe|gesamt|total)\b/i.test(name)) continue;
+        records.push({
+          name,
+          externalId: get(r, col.id),
+          klasse: get(r, col.klasse) || 'Ohne Klasse',
+          fach: get(r, col.fach),
+          lehrkraft: get(r, col.lehrkraft),
+          unterrichtsMins: parseNumber(get(r, col.unterrichtsMins)),
+          lateMins: parseNumber(get(r, col.lateMins))
+        });
+      }
+
+      if (records.length === 0) throw new Error('Keine gültigen Datensätze in der Verspätungs-CSV gefunden.');
+      return records;
+    }
+
+    function runLateAnalysis(records, th) {
+      // Group subject rows per student; a row without "Fach" is treated as the student's total row
+      const studentMap = new Map();
+      for (const r of records) {
+        const key = r.externalId || `${r.name}|${r.klasse}`;
+        if (!studentMap.has(key)) {
+          studentMap.set(key, { studentId: r.externalId || '–', name: r.name, klasse: r.klasse, subjects: [], totalRow: null });
+        }
+        const s = studentMap.get(key);
+        if (r.fach) s.subjects.push(r);
+        else s.totalRow = r;
+      }
+
+      const students = [...studentMap.values()].map(s => {
+        const source = s.subjects.length > 0 ? s.subjects : (s.totalRow ? [s.totalRow] : []);
+        const lateMins = source.reduce((sum, x) => sum + x.lateMins, 0);
+        const unterrichtsMins = source.reduce((sum, x) => sum + x.unterrichtsMins, 0);
+        const lateSubjects = s.subjects.filter(x => x.lateMins > 0).sort((a, b) => b.lateMins - a.lateMins);
+        const latePercentage = unterrichtsMins > 0 ? round((lateMins / unterrichtsMins) * 100, 2) : 0;
+
+        let status = 'normal';
+        const riskFactors = [];
+        if (lateMins >= th.lateMinsCritical) {
+          status = 'critical';
+          riskFactors.push(`Kritisch: ${lateMins} Verspätungsminuten (>= ${th.lateMinsCritical} Min)`);
+        } else if (lateMins >= th.lateMinsWarning) {
+          status = 'warning';
+          riskFactors.push(`Auffällig: ${lateMins} Verspätungsminuten (>= ${th.lateMinsWarning} Min)`);
+        }
+        if (lateSubjects.length > 0 && status !== 'normal') {
+          riskFactors.push(`Meiste Verspätung in ${lateSubjects[0].fach} (${lateSubjects[0].lateMins} Min)`);
+        }
+
+        return {
+          studentId: s.studentId,
+          name: s.name,
+          klasse: s.klasse,
+          subjects: [...s.subjects].sort((a, b) => b.lateMins - a.lateMins || a.fach.localeCompare(b.fach)),
+          lateMins,
+          unterrichtsMins,
+          latePercentage,
+          lateSubjectCount: lateSubjects.length,
+          topSubject: lateSubjects.length > 0 ? lateSubjects[0].fach : '',
+          status,
+          riskFactors
+        };
+      });
+
+      const classMap = new Map();
+      for (const s of students) {
+        if (!classMap.has(s.klasse)) {
+          classMap.set(s.klasse, { klasse: s.klasse, studentCount: 0, lateStudentCount: 0, totalLateMins: 0, criticalCount: 0, warningCount: 0 });
+        }
+        const c = classMap.get(s.klasse);
+        c.studentCount++;
+        c.totalLateMins += s.lateMins;
+        if (s.lateMins > 0) c.lateStudentCount++;
+        if (s.status === 'critical') c.criticalCount++;
+        else if (s.status === 'warning') c.warningCount++;
+      }
+      const classes = [...classMap.values()].map(c => ({
+        ...c,
+        avgLateMins: c.studentCount > 0 ? round(c.totalLateMins / c.studentCount, 1) : 0
+      }));
+      classes.sort((a, b) => b.totalLateMins - a.totalLateMins || a.klasse.localeCompare(b.klasse));
+
+      const lateStudents = students.filter(s => s.lateMins > 0);
+      const totalLateMins = students.reduce((sum, s) => sum + s.lateMins, 0);
+      const kpis = {
+        totalStudents: students.length,
+        lateStudentsCount: lateStudents.length,
+        totalLateMins,
+        avgLateMinsPerLateStudent: lateStudents.length > 0 ? round(totalLateMins / lateStudents.length, 1) : 0,
+        criticalStudentsCount: students.filter(s => s.status === 'critical').length,
+        warningStudentsCount: students.filter(s => s.status === 'warning').length
+      };
+
+      return { students, classes, kpis };
+    }
+
+    function recalculateLateAndRender() {
+      if (lateState.records.length > 0) {
+        const res = runLateAnalysis(lateState.records, lateState.thresholds);
+        lateState.students = res.students;
+        lateState.classes = res.classes;
+        lateState.kpis = res.kpis;
+      } else {
+        lateState.students = [];
+        lateState.classes = [];
+        lateState.kpis = null;
+      }
+      renderLateView();
+    }
+
+    function loadLateCsvData(csvText, fileName = 'verspaetungen.csv', isAutoLoaded = false) {
+      try {
+        lateState.records = parseLateCsv(csvText);
+        lateState.currentFileName = fileName;
+        try {
+          localStorage.setItem('sf_late_csv_text', csvText);
+          localStorage.setItem('sf_late_csv_name', fileName);
+        } catch (e) {
+          console.warn('LocalStorage voll oder gesperrt:', e);
+        }
+        recalculateLateAndRender();
+        if (isAutoLoaded) {
+          showNotification(`✓ Verspätungs-Datei "${fileName}" (${lateState.students.length} Schüler) automatisch geladen.`);
+        }
+        return true;
+      } catch (err) {
+        if (!isAutoLoaded) alert('Fehler beim Verarbeiten der Verspätungs-CSV: ' + err.message);
+        else console.warn('Auto-Load fehlgeschlagen für ' + fileName + ':', err);
+        return false;
+      }
+    }
+
+    // Detects the CSV type and loads it into the matching view. Returns 'late', 'absences' or null.
+    function loadAnyCsv(csvText, fileName, isAutoLoaded = false) {
+      if (isLateCsv(csvText)) {
+        return loadLateCsvData(csvText, fileName, isAutoLoaded) ? 'late' : null;
+      }
+      return loadCsvData(csvText, fileName, isAutoLoaded) ? 'absences' : null;
+    }
+
+    function filterLateStudents() {
+      const q = lateState.searchTerm.toLowerCase();
+      return lateState.students.filter(s => {
+        if (lateState.selectedClass && s.klasse !== lateState.selectedClass) return false;
+        if (lateState.statusFilter !== 'all' && s.status !== lateState.statusFilter) return false;
+        if (q && !s.name.toLowerCase().includes(q) && !s.studentId.toLowerCase().includes(q) && !s.klasse.toLowerCase().includes(q)) return false;
+        return true;
+      });
+    }
+
+    function formatMins(mins) {
+      return `${round(mins, 1)} Min`;
+    }
+
+    function renderLateView() {
+      const hasData = lateState.students.length > 0;
+      document.getElementById('late-empty-state').style.display = hasData ? 'none' : 'block';
+      document.getElementById('late-content').style.display = hasData ? 'flex' : 'none';
+      updateFileBadge();
+      if (!hasData) return;
+
+      const k = lateState.kpis;
+      const th = lateState.thresholds;
+      document.getElementById('late-kpi-students').textContent = k.lateStudentsCount;
+      document.getElementById('late-kpi-students-sub').textContent = `von ${k.totalStudents} im Datensatz`;
+      document.getElementById('late-kpi-mins').innerHTML = `${round(k.totalLateMins, 1)} <span style="font-size:14px; font-weight:500; color:#64748b;">Min</span>`;
+      document.getElementById('late-kpi-avg').textContent = `Ø ${k.avgLateMinsPerLateStudent} Min / Schüler mit Verspätung`;
+      document.getElementById('late-kpi-critical-count').textContent = k.criticalStudentsCount;
+      document.getElementById('late-kpi-critical-sub').textContent = `ab ${th.lateMinsCritical} Min`;
+      document.getElementById('late-kpi-warning-count').textContent = k.warningStudentsCount;
+      document.getElementById('late-kpi-warning-sub').textContent = `ab ${th.lateMinsWarning} Min`;
+
+      const classSelect = document.getElementById('late-class-select');
+      classSelect.innerHTML = '<option value="">Alle Klassen</option>';
+      [...lateState.classes].sort((a, b) => a.klasse.localeCompare(b.klasse, 'de', { numeric: true })).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.klasse;
+        opt.textContent = `Klasse ${c.klasse} (${c.studentCount})`;
+        if (c.klasse === lateState.selectedClass) opt.selected = true;
+        classSelect.appendChild(opt);
+      });
+
+      renderLateClasses();
+      renderLateSubjects();
+      renderLateTable();
+    }
+
+    function renderLateClasses() {
+      const container = document.getElementById('late-classes-container');
+      container.innerHTML = '';
+      const maxMins = Math.max(...lateState.classes.map(c => c.totalLateMins), 1);
+
+      lateState.classes.forEach(c => {
+        const isSelected = lateState.selectedClass === c.klasse;
+        const card = document.createElement('div');
+        card.className = `class-card ${isSelected ? 'selected' : ''}`;
+        const barWidth = Math.round((c.totalLateMins / maxMins) * 100);
+
+        card.innerHTML = `
+          <div class="class-header">
+            <div class="class-title">Klasse ${esc(c.klasse)} <span style="font-size:12px; font-weight:500; color:#64748b;">(${c.studentCount} Schüler)</span></div>
+          </div>
+          <div style="font-size:12px; color:#475569; display:flex; justify-content:space-between; font-weight:500;">
+            <span>Verspätung: <strong style="color:#6d28d9;">${formatMins(c.totalLateMins)}</strong></span>
+            <span>Betroffen: <strong>${c.lateStudentCount}</strong></span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="bar-late" style="width:${barWidth}%;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#64748b; padding-top:4px; border-top:1px solid #e2e8f0;">
+            <span>Ø ${c.avgLateMins} Min/Schüler</span>
+            <div style="display:flex; gap:6px; font-weight:700;">
+              ${c.criticalCount > 0 ? `<span style="color:#dc2626;">🔴 ${c.criticalCount}</span>` : ''}
+              ${c.warningCount > 0 ? `<span style="color:#d97706;">🟡 ${c.warningCount}</span>` : ''}
+              ${c.criticalCount === 0 && c.warningCount === 0 ? `<span style="color:#16a34a;">🟢 Unauffällig</span>` : ''}
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          lateState.selectedClass = isSelected ? '' : c.klasse;
+          document.getElementById('late-class-select').value = lateState.selectedClass;
+          renderLateClasses();
+          renderLateSubjects();
+          renderLateTable();
+        });
+        container.appendChild(card);
+      });
+    }
+
+    function renderLateSubjects() {
+      const tbody = document.getElementById('late-subjects-tbody');
+      document.getElementById('late-subjects-hint').textContent = lateState.selectedClass ? `Klasse ${lateState.selectedClass}` : 'Alle Klassen';
+
+      const subjectMap = new Map();
+      lateState.students
+        .filter(s => !lateState.selectedClass || s.klasse === lateState.selectedClass)
+        .forEach(s => s.subjects.forEach(sub => {
+          if (sub.lateMins <= 0) return;
+          if (!subjectMap.has(sub.fach)) subjectMap.set(sub.fach, { fach: sub.fach, totalLateMins: 0, students: new Set(), teachers: new Set() });
+          const entry = subjectMap.get(sub.fach);
+          entry.totalLateMins += sub.lateMins;
+          entry.students.add(s.studentId + '|' + s.name);
+          if (sub.lehrkraft) entry.teachers.add(sub.lehrkraft);
+        }));
+
+      const subjects = [...subjectMap.values()].sort((a, b) => b.totalLateMins - a.totalLateMins);
+      if (subjects.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:24px; color:#94a3b8;">Keine Verspätungen erfasst.</td></tr>';
+        return;
+      }
+      const maxMins = subjects[0].totalLateMins;
+      tbody.innerHTML = subjects.map(sub => `
+        <tr>
+          <td style="font-weight:700;">${esc(sub.fach)}</td>
+          <td>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="width:80px; height:6px; background:#f1f5f9; border-radius:9999px; overflow:hidden;">
+                <div class="bar-late" style="width:${Math.round((sub.totalLateMins / maxMins) * 100)}%;"></div>
+              </div>
+              <span style="font-weight:700; color:#6d28d9;">${formatMins(sub.totalLateMins)}</span>
+            </div>
+          </td>
+          <td>${sub.students.size}</td>
+          <td style="font-size:12px; color:#475569;">${esc([...sub.teachers].join(', ')) || '–'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderLateTable() {
+      const tbody = document.getElementById('late-students-tbody');
+      const list = filterLateStudents();
+
+      list.sort((a, b) => {
+        const valA = a[lateState.sortField];
+        const valB = b[lateState.sortField];
+        if (typeof valA === 'string') {
+          return lateState.sortAsc ? valA.localeCompare(valB, 'de') : valB.localeCompare(valA, 'de');
+        }
+        return lateState.sortAsc ? valA - valB : valB - valA;
+      });
+
+      document.getElementById('late-filtered-count').textContent = `${list.length} von ${lateState.students.length} Schülern`;
+
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:32px; color:#94a3b8;">Keine Schüler für die gewählten Filter gefunden.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      list.forEach(s => {
+        const badge = s.status === 'critical'
+          ? '<span class="badge badge-critical">🔴 Kritisch</span>'
+          : s.status === 'warning'
+            ? '<span class="badge badge-warning">🟡 Auffällig</span>'
+            : '<span class="badge badge-normal">🟢 Normal</span>';
+
+        const tr = document.createElement('tr');
+        tr.className = 'clickable-row';
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight:700; color:#0f172a;">${esc(s.name)}</div>
+            <div style="font-size:11px; font-family:monospace; color:#94a3b8;">ID: ${esc(s.studentId)}</div>
+          </td>
+          <td>
+            <span style="background:#f1f5f9; padding:2px 8px; border-radius:4px; font-weight:700; font-size:11px; color:#334155;">${esc(s.klasse)}</span>
+          </td>
+          <td>
+            <div style="font-weight:700; color:${s.lateMins > 0 ? '#6d28d9' : '#475569'};">${formatMins(s.lateMins)}</div>
+          </td>
+          <td>
+            <span style="font-weight:600; color:#334155;">${s.latePercentage}%</span>
+          </td>
+          <td>
+            <div style="font-weight:600;">${s.lateSubjectCount}</div>
+            ${s.topSubject ? `<div style="font-size:11px; color:#94a3b8;">meist: ${esc(s.topSubject)}</div>` : ''}
+          </td>
+          <td>${badge}</td>
+        `;
+        tr.addEventListener('click', () => openLateModal(s));
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openLateModal(s) {
+      document.getElementById('late-modal-student-id').textContent = `ID: ${s.studentId}`;
+      document.getElementById('late-modal-student-name').textContent = s.name;
+      document.getElementById('late-modal-student-class').textContent = `Klasse ${s.klasse}`;
+      document.getElementById('late-modal-mins').textContent = formatMins(s.lateMins);
+      document.getElementById('late-modal-pct').textContent = `${s.latePercentage}%`;
+      document.getElementById('late-modal-subjects').textContent = `${s.lateSubjectCount} / ${s.subjects.length}`;
+
+      const statusEl = document.getElementById('late-modal-status');
+      const styles = {
+        critical: ['#fef2f2', '#fecaca', '#991b1b', 'Kritisch – Gespräch mit Erziehungsberechtigten / Klassenleitung empfohlen'],
+        warning: ['#fffbeb', '#fde68a', '#92400e', 'Auffällig – Rücksprache mit der Klassenleitung'],
+        normal: ['#f0fdf4', '#bbf7d0', '#166534', 'Unauffällig']
+      }[s.status];
+      statusEl.style.background = styles[0];
+      statusEl.style.borderColor = styles[1];
+      statusEl.style.color = styles[2];
+      statusEl.textContent = styles[3];
+
+      const tbody = document.getElementById('late-modal-tbody');
+      tbody.innerHTML = s.subjects.length === 0
+        ? '<tr><td colspan="4" style="text-align:center; padding:16px; color:#94a3b8;">Keine Fächer im Datensatz.</td></tr>'
+        : s.subjects.map(sub => `
+          <tr>
+            <td style="font-weight:700;">${esc(sub.fach)}</td>
+            <td style="font-size:12px; color:#475569;">${esc(sub.lehrkraft) || '–'}</td>
+            <td style="font-weight:700; color:${sub.lateMins > 0 ? '#6d28d9' : '#94a3b8'};">${formatMins(sub.lateMins)}</td>
+            <td style="font-size:12px; color:#64748b;">${sub.unterrichtsMins > 0 ? formatMins(sub.unterrichtsMins) : '–'}</td>
+          </tr>
+        `).join('');
+
+      document.getElementById('late-modal').style.display = 'flex';
+    }
+
+    function exportLateCsv() {
+      const list = filterLateStudents();
+      if (list.length === 0) {
+        alert('Keine Schüler zum Exportieren vorhanden.');
+        return;
+      }
+      const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+      const headers = ['Externe Id', 'Schüler*innen', 'Klasse', 'Verspätungsminuten', 'Anteil Unterricht (%)', 'Fächer mit Verspätung', 'Status', 'Fächer (Min)'];
+      const statusText = { critical: 'Kritisch', warning: 'Auffällig', normal: 'Normal' };
+      const rows = list.map(s => [
+        q(s.studentId),
+        q(s.name),
+        q(s.klasse),
+        String(round(s.lateMins, 1)).replace('.', ','),
+        String(s.latePercentage).replace('.', ','),
+        s.lateSubjectCount,
+        statusText[s.status],
+        q(s.subjects.filter(x => x.lateMins > 0).map(x => `${x.fach}: ${x.lateMins}`).join(', '))
+      ].join(';'));
+
+      const blob = new Blob(['﻿' + [headers.join(';'), ...rows].join('\r\n')], { type: 'text/csv;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `verspaetungen_auswertung_${lateState.selectedClass || 'alle'}_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
+
+    // --- 6c. VIEW SWITCHING ---
+    function updateFileBadge() {
+      const fileMeta = document.getElementById('file-meta');
+      let name = '', count = 0;
+      if (activeView === 'late' && lateState.students.length > 0) {
+        name = lateState.currentFileName;
+        count = lateState.students.length;
+      } else if (activeView === 'absences' && state.analyzedStudents.length > 0) {
+        name = state.currentFileName || 'Fehlzeiten.csv';
+        count = state.analyzedStudents.length;
+      }
+      fileMeta.style.display = name ? 'inline-flex' : 'none';
+      document.getElementById('file-name-text').textContent = name;
+      document.getElementById('file-count-text').textContent = `${count} Schüler`;
+    }
+
+    function setView(view) {
+      activeView = view;
+      document.getElementById('view-absences').style.display = view === 'absences' ? 'flex' : 'none';
+      document.getElementById('view-late').style.display = view === 'late' ? 'flex' : 'none';
+      document.querySelectorAll('.view-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+      try { localStorage.setItem('sf_active_view', view); } catch (e) { /* ignore */ }
+      updateFileBadge();
+    }
+
     // --- 7. NOTIFICATION SYSTEM ---
     function showNotification(msg) {
       const banner = document.getElementById('notification-banner');
@@ -1478,12 +2303,14 @@
         if (isAutoLoaded) {
           showNotification(`✓ CSV-Datei "${fileName}" (${students.length} Schüler) automatisch geladen.`);
         }
+        return true;
       } catch (err) {
         if (!isAutoLoaded) {
           alert('Fehler beim Verarbeiten der CSV: ' + err.message);
         } else {
           console.warn('Auto-Load fehlgeschlagen für ' + fileName + ':', err);
         }
+        return false;
       }
     }
 
@@ -1501,16 +2328,21 @@
 
     // --- 9. AUTOMATIC CSV DETECTION IN FOLDER ---
     async function tryAutoDetectCsv() {
-      // 1. Try to fetch candidate files in current folder
+      const loaded = new Set();
+
+      // 1. Try to fetch candidate files in current folder (each file is routed by its detected format)
       for (const fileName of CANDIDATE_FILES) {
+        if (loaded.has('absences') && loaded.has('late')) break;
         try {
           const response = await fetch(fileName + '?t=' + Date.now(), { cache: 'no-cache' });
           if (response.ok) {
             const text = await response.text();
+            if (!text) continue;
+            const kind = isLateCsv(text) ? 'late' : 'absences';
+            if (loaded.has(kind)) continue;
             // Verify it has CSV content
-            if (text && (text.includes('student') || text.includes('klasse') || text.includes('name') || text.includes(','))) {
-              loadCsvData(text, fileName, true);
-              return true;
+            if (kind === 'late' || text.includes('student') || text.includes('klasse') || text.includes('name') || text.includes(',')) {
+              if (loadAnyCsv(text, fileName, true)) loaded.add(kind);
             }
           }
         } catch (e) {
@@ -1522,17 +2354,25 @@
       try {
         const cachedText = localStorage.getItem('sf_last_csv_text');
         const cachedName = localStorage.getItem('sf_last_csv_name');
-        if (cachedText && cachedName) {
-          loadCsvData(cachedText, cachedName, true);
-          return true;
+        if (!loaded.has('absences') && cachedText && cachedName && loadCsvData(cachedText, cachedName, true)) {
+          loaded.add('absences');
+        }
+        const cachedLateText = localStorage.getItem('sf_late_csv_text');
+        const cachedLateName = localStorage.getItem('sf_late_csv_name');
+        if (!loaded.has('late') && cachedLateText && cachedLateName && loadLateCsvData(cachedLateText, cachedLateName, true)) {
+          loaded.add('late');
         }
       } catch (e) {
         console.warn(e);
       }
 
-      // If nothing found, render empty state
-      renderDashboard();
-      return false;
+      // Render empty states for whatever was not found
+      if (!loaded.has('absences')) renderDashboard();
+      if (!loaded.has('late')) renderLateView();
+      if (loaded.size === 2) {
+        showNotification(`✓ Fehlzeiten "${state.currentFileName}" und Verspätungen "${lateState.currentFileName}" automatisch geladen.`);
+      }
+      return loaded.size > 0;
     }
 
     // Directory Picker Scan (Native File System Access API)
@@ -1544,24 +2384,26 @@
 
       try {
         const dirHandle = await window.showDirectoryPicker();
-        let foundCsv = null;
-        let foundName = '';
+        const loaded = {};
 
+        // Take the first CSV of each format (Fehlzeiten / Verspätungen)
         for await (const entry of dirHandle.values()) {
+          if (loaded.absences && loaded.late) break;
           if (entry.kind === 'file' && entry.name.toLowerCase().endsWith('.csv')) {
             const file = await entry.getFile();
             const text = await file.text();
-            foundCsv = text;
-            foundName = entry.name;
-            break; // take first detected csv
+            const kind = isLateCsv(text) ? 'late' : 'absences';
+            if (loaded[kind]) continue;
+            if (loadAnyCsv(text, entry.name, true)) loaded[kind] = entry.name;
           }
         }
 
-        if (foundCsv) {
-          loadCsvData(foundCsv, foundName, false);
-          showNotification(`✓ Datei "${foundName}" im Ordner gefunden und geladen.`);
+        const names = Object.values(loaded);
+        if (names.length > 0) {
+          showNotification(`✓ Im Ordner gefunden und geladen: ${names.map(n => `"${n}"`).join(', ')}.`);
+          if (!loaded[activeView]) setView(loaded.late ? 'late' : 'absences');
         } else {
-          alert('Keine .csv-Datei im ausgewählten Ordner gefunden.');
+          alert('Keine gültige .csv-Datei im ausgewählten Ordner gefunden.');
         }
       } catch (err) {
         if (err.name !== 'AbortError') {
@@ -1573,8 +2415,18 @@
 
     // --- 10. INITIALIZATION & EVENT LISTENERS ---
     document.addEventListener('DOMContentLoaded', () => {
+      // Restore last active view
+      try {
+        if (localStorage.getItem('sf_active_view') === 'late') setView('late');
+      } catch (e) { /* ignore */ }
+
       // Auto-detect CSV in folder on startup
       tryAutoDetectCsv();
+
+      // View Switch
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', () => setView(btn.dataset.view));
+      });
 
       // Scan Folder Buttons
       document.getElementById('scan-folder-btn').addEventListener('click', scanLocalDirectory);
@@ -1600,8 +2452,8 @@
       });
 
       // Threshold Toggle & Settings
-      const panel = document.getElementById('threshold-panel');
       document.getElementById('toggle-threshold-btn').addEventListener('click', () => {
+        const panel = document.getElementById(activeView === 'late' ? 'late-threshold-panel' : 'threshold-panel');
         panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
       });
 
@@ -1655,13 +2507,13 @@
       });
 
       function updateStatusTabs() {
-        document.querySelectorAll('.tab-btn').forEach(btn => {
+        document.querySelectorAll('#view-absences .tab-btn').forEach(btn => {
           if (btn.dataset.status === state.statusFilter) btn.classList.add('active');
           else btn.classList.remove('active');
         });
       }
 
-      document.querySelectorAll('.tab-btn').forEach(btn => {
+      document.querySelectorAll('#view-absences .tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           state.statusFilter = btn.dataset.status;
           updateStatusTabs();
@@ -1707,19 +2559,93 @@
       function handleFile(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          loadCsvData(e.target.result, file.name, false);
+          const kind = loadAnyCsv(e.target.result, file.name, false);
+          if (kind) setView(kind);
           uploadModal.style.display = 'none';
+          fileInput.value = '';
         };
         reader.readAsText(file);
       }
 
+      // --- Verspätungen: Controls ---
+      document.getElementById('late-empty-upload-btn').addEventListener('click', () => fileInput.click());
+
+      document.getElementById('late-apply-thresholds-btn').addEventListener('click', () => {
+        lateState.thresholds.lateMinsWarning = parseFloat(document.getElementById('th-late-warn').value) || LATE_DEFAULT_THRESHOLDS.lateMinsWarning;
+        lateState.thresholds.lateMinsCritical = parseFloat(document.getElementById('th-late-crit').value) || LATE_DEFAULT_THRESHOLDS.lateMinsCritical;
+        recalculateLateAndRender();
+      });
+
+      document.getElementById('late-reset-thresholds-btn').addEventListener('click', () => {
+        lateState.thresholds = { ...LATE_DEFAULT_THRESHOLDS };
+        document.getElementById('th-late-warn').value = LATE_DEFAULT_THRESHOLDS.lateMinsWarning;
+        document.getElementById('th-late-crit').value = LATE_DEFAULT_THRESHOLDS.lateMinsCritical;
+        recalculateLateAndRender();
+      });
+
+      function updateLateStatusTabs() {
+        document.querySelectorAll('#view-late .tab-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.status === lateState.statusFilter);
+        });
+      }
+
+      document.querySelectorAll('#view-late .tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          lateState.statusFilter = btn.dataset.status;
+          updateLateStatusTabs();
+          renderLateTable();
+        });
+      });
+
+      document.getElementById('late-kpi-card-critical').addEventListener('click', () => {
+        lateState.statusFilter = lateState.statusFilter === 'critical' ? 'all' : 'critical';
+        updateLateStatusTabs();
+        renderLateTable();
+      });
+      document.getElementById('late-kpi-card-warning').addEventListener('click', () => {
+        lateState.statusFilter = lateState.statusFilter === 'warning' ? 'all' : 'warning';
+        updateLateStatusTabs();
+        renderLateTable();
+      });
+
+      document.getElementById('late-student-search').addEventListener('input', (e) => {
+        lateState.searchTerm = e.target.value;
+        renderLateTable();
+      });
+
+      document.getElementById('late-class-select').addEventListener('change', (e) => {
+        lateState.selectedClass = e.target.value;
+        renderLateClasses();
+        renderLateSubjects();
+        renderLateTable();
+      });
+
+      document.querySelectorAll('th[data-late-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const field = th.dataset.lateSort;
+          if (lateState.sortField === field) {
+            lateState.sortAsc = !lateState.sortAsc;
+          } else {
+            lateState.sortField = field;
+            lateState.sortAsc = field === 'name' || field === 'klasse';
+          }
+          renderLateTable();
+        });
+      });
+
+      document.getElementById('late-export-csv-btn').addEventListener('click', exportLateCsv);
+
       // Detail Modal Close
       const detailModal = document.getElementById('detail-modal');
+      const lateModal = document.getElementById('late-modal');
       document.getElementById('close-detail-btn').addEventListener('click', () => detailModal.style.display = 'none');
       document.getElementById('close-detail-footer-btn').addEventListener('click', () => detailModal.style.display = 'none');
+      document.getElementById('close-late-modal-btn').addEventListener('click', () => lateModal.style.display = 'none');
+      document.getElementById('close-late-modal-footer-btn').addEventListener('click', () => lateModal.style.display = 'none');
       window.addEventListener('click', (e) => {
         if (e.target === uploadModal) uploadModal.style.display = 'none';
         if (e.target === detailModal) detailModal.style.display = 'none';
+        if (e.target === lateModal) lateModal.style.display = 'none';
       });
     });
   </script>
